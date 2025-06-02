@@ -1,4 +1,4 @@
-*MacBul*
+#MacBul
 [EN]
 “MaçBul” is a mobile and web‐based platform that brings together players in Turkey who want to organize indoor soccer matches.
 
