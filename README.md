@@ -22,11 +22,16 @@
   * **Frontend**: React Native (iOS/Android applications) and an optional web interface
 
 Thus, “MaçBul” offers rapid prototyping and a scalable infrastructure while making it easy for users to socially participate in indoor soccer matches.
-<img src="images/screen1.png" alt="Açıklama" width="100" />
-<img src="images/screen2.png" alt="Açıklama" width="50" />
 
-![01dda6bf-b956-4297-ba55-2c30fddd55b5](https://github.com/user-attachments/assets/0708ee4b-efa6-48a4-a13b-b9d9826dc50f)
-![ChatGPT Image 26 May 2025 23_15_02](https://github.com/user-attachments/assets/20398786-3ebd-4ebb-998a-fd9219f3a393)
+
+<img src="images/screen1.png" alt="Açıklama" width="200" />
+
+
+<img src="images/screen2.png" alt="Açıklama" width="200" />
+
+
+<img src="images/screen3.png" alt="Açıklama" width="200" />
+
 
 
 [TR]
