@@ -8,11 +8,13 @@ import com.macbul.platform.dto.MatchVideoDto;
 import com.macbul.platform.dto.NotificationDto;
 import com.macbul.platform.dto.ReferralCodeDto;
 import com.macbul.platform.dto.ReferralDto;
+import com.macbul.platform.dto.ReportDto;
 import com.macbul.platform.dto.TeamDto;
 import com.macbul.platform.dto.TransactionDto;
 import com.macbul.platform.dto.UserDto;
 import com.macbul.platform.dto.UserProfileCreateRequest;
 import com.macbul.platform.dto.UserProfileDto;
+import com.macbul.platform.dto.VideoClipDto;
 import com.macbul.platform.dto.WalletCreateRequest;
 import com.macbul.platform.dto.WalletDto;
 import com.macbul.platform.model.Feedback;
@@ -22,10 +24,12 @@ import com.macbul.platform.model.MatchVideo;
 import com.macbul.platform.model.Notification;
 import com.macbul.platform.model.Referral;
 import com.macbul.platform.model.ReferralCode;
+import com.macbul.platform.model.Report;
 import com.macbul.platform.model.Team;
 import com.macbul.platform.model.Transaction;
 import com.macbul.platform.model.User;
 import com.macbul.platform.model.UserProfile;
+import com.macbul.platform.model.VideoClip;
 import com.macbul.platform.model.Wallet;
 
 import org.modelmapper.ModelMapper;
@@ -176,6 +180,34 @@ public class MapperUtil {
         dto.setPayload(n.getPayload());
         dto.setIsRead(n.getIsRead());
         dto.setCreatedAt(n.getCreatedAt());
+        return dto;
+    }
+
+
+    public ReportDto toReportDto(Report r) {
+        ReportDto dto = new ReportDto();
+        dto.setId(r.getId());
+        dto.setMatchId(r.getMatch().getId());
+        dto.setReporterUserId(r.getReporter().getId());
+        dto.setReportedUserId(r.getReported().getId());
+        dto.setReason(r.getReason());
+        dto.setDetails(r.getDetails());
+        dto.setStatus(r.getStatus());
+        dto.setCreatedAt(r.getCreatedAt());
+        dto.setResolvedAt(r.getResolvedAt());
+        return dto;
+    }
+
+
+    public VideoClipDto toVideoClipDto(VideoClip vc) {
+        VideoClipDto dto = new VideoClipDto();
+        dto.setId(vc.getId());
+        dto.setMatchVideoId(vc.getMatchVideo().getId());
+        dto.setUserId(vc.getUser().getId());
+        dto.setClipUrl(vc.getClipUrl());
+        dto.setStartSec(vc.getStartSec());
+        dto.setEndSec(vc.getEndSec());
+        dto.setCreatedAt(vc.getCreatedAt());
         return dto;
     }
 }
