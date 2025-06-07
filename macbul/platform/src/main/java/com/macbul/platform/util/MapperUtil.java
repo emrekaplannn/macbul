@@ -1,11 +1,17 @@
 // src/main/java/com/macbul/platform/util/MapperUtil.java
 package com.macbul.platform.util;
 
+import com.macbul.platform.dto.MatchDto;
+import com.macbul.platform.dto.TeamDto;
+import com.macbul.platform.dto.TransactionDto;
 import com.macbul.platform.dto.UserDto;
 import com.macbul.platform.dto.UserProfileCreateRequest;
 import com.macbul.platform.dto.UserProfileDto;
 import com.macbul.platform.dto.WalletCreateRequest;
 import com.macbul.platform.dto.WalletDto;
+import com.macbul.platform.model.Match;
+import com.macbul.platform.model.Team;
+import com.macbul.platform.model.Transaction;
 import com.macbul.platform.model.User;
 import com.macbul.platform.model.UserProfile;
 import com.macbul.platform.model.Wallet;
@@ -55,4 +61,40 @@ public class MapperUtil {
         wallet.setUpdatedAt(System.currentTimeMillis());
         return wallet;
     }
+
+    /** Transaction → TransactionDto */
+    public TransactionDto toTransactionDto(Transaction tx) {
+        TransactionDto dto = new TransactionDto();
+        dto.setId(tx.getId());
+        dto.setUserId(tx.getUser().getId());
+        dto.setAmount(tx.getAmount());
+        dto.setType(tx.getType());
+        dto.setDescription(tx.getDescription());
+        dto.setCreatedAt(tx.getCreatedAt());
+        return dto;
+    }
+
+    public TeamDto toTeamDto(Team team) {
+        TeamDto dto = new TeamDto();
+        dto.setId(team.getId());
+        dto.setMatchId(team.getMatch().getId());
+        dto.setTeamNumber(team.getTeamNumber());
+        dto.setAverageScore(team.getAverageScore());
+        dto.setCreatedAt(team.getCreatedAt());
+        return dto;
+    }
+
+    public MatchDto toMatchDto(Match match) {
+        MatchDto dto = new MatchDto();
+        dto.setId(match.getId());
+        dto.setOrganizerId(match.getOrganizer().getId());
+        dto.setFieldName(match.getFieldName());
+        dto.setAddress(match.getAddress());
+        dto.setCity(match.getCity());
+        dto.setMatchTimestamp(match.getMatchTimestamp());
+        dto.setPricePerUser(match.getPricePerUser());
+        dto.setTotalSlots(match.getTotalSlots());
+        dto.setCreatedAt(match.getCreatedAt());
+        return dto;
+    }    
 }
