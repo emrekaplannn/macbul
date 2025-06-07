@@ -2,6 +2,8 @@
 package com.macbul.platform.util;
 
 import com.macbul.platform.dto.MatchDto;
+import com.macbul.platform.dto.MatchParticipantDto;
+import com.macbul.platform.dto.MatchVideoDto;
 import com.macbul.platform.dto.TeamDto;
 import com.macbul.platform.dto.TransactionDto;
 import com.macbul.platform.dto.UserDto;
@@ -10,6 +12,8 @@ import com.macbul.platform.dto.UserProfileDto;
 import com.macbul.platform.dto.WalletCreateRequest;
 import com.macbul.platform.dto.WalletDto;
 import com.macbul.platform.model.Match;
+import com.macbul.platform.model.MatchParticipant;
+import com.macbul.platform.model.MatchVideo;
 import com.macbul.platform.model.Team;
 import com.macbul.platform.model.Transaction;
 import com.macbul.platform.model.User;
@@ -97,4 +101,26 @@ public class MapperUtil {
         dto.setCreatedAt(match.getCreatedAt());
         return dto;
     }    
+
+
+    public MatchParticipantDto toMatchParticipantDto(MatchParticipant mp) {
+        MatchParticipantDto dto = new MatchParticipantDto();
+        dto.setId(mp.getId());
+        dto.setMatchId(mp.getMatch().getId());
+        dto.setUserId(mp.getUser().getId());
+        dto.setTeamId(mp.getTeam() != null ? mp.getTeam().getId() : null);
+        dto.setJoinedAt(mp.getJoinedAt());
+        dto.setHasPaid(mp.getHasPaid());
+        return dto;
+    }
+
+
+    public MatchVideoDto toMatchVideoDto(MatchVideo mv) {
+        MatchVideoDto dto = new MatchVideoDto();
+        dto.setId(mv.getId());
+        dto.setMatchId(mv.getMatch().getId());
+        dto.setVideoUrl(mv.getVideoUrl());
+        dto.setUploadedAt(mv.getUploadedAt());
+        return dto;
+    }
 }
