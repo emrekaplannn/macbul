@@ -4,6 +4,8 @@ package com.macbul.platform.util;
 import com.macbul.platform.dto.MatchDto;
 import com.macbul.platform.dto.MatchParticipantDto;
 import com.macbul.platform.dto.MatchVideoDto;
+import com.macbul.platform.dto.ReferralCodeDto;
+import com.macbul.platform.dto.ReferralDto;
 import com.macbul.platform.dto.TeamDto;
 import com.macbul.platform.dto.TransactionDto;
 import com.macbul.platform.dto.UserDto;
@@ -14,6 +16,8 @@ import com.macbul.platform.dto.WalletDto;
 import com.macbul.platform.model.Match;
 import com.macbul.platform.model.MatchParticipant;
 import com.macbul.platform.model.MatchVideo;
+import com.macbul.platform.model.Referral;
+import com.macbul.platform.model.ReferralCode;
 import com.macbul.platform.model.Team;
 import com.macbul.platform.model.Transaction;
 import com.macbul.platform.model.User;
@@ -121,6 +125,30 @@ public class MapperUtil {
         dto.setMatchId(mv.getMatch().getId());
         dto.setVideoUrl(mv.getVideoUrl());
         dto.setUploadedAt(mv.getUploadedAt());
+        return dto;
+    }
+
+
+    public ReferralDto toReferralDto(Referral r) {
+        ReferralDto dto = new ReferralDto();
+        dto.setId(r.getId());
+        dto.setReferrerUserId(r.getReferrerUser().getId());
+        dto.setReferredUserId(r.getReferredUser().getId());
+        dto.setMatchId(r.getMatch() != null ? r.getMatch().getId() : null);
+        dto.setRewardAmount(r.getRewardAmount());
+        dto.setRewarded(r.getRewarded());
+        dto.setCreatedAt(r.getCreatedAt());
+        return dto;
+    }
+
+
+
+    public ReferralCodeDto toReferralCodeDto(ReferralCode rc) {
+        ReferralCodeDto dto = new ReferralCodeDto();
+        dto.setId(rc.getId());
+        dto.setUserId(rc.getUser().getId());
+        dto.setCode(rc.getCode());
+        dto.setCreatedAt(rc.getCreatedAt());
         return dto;
     }
 }
