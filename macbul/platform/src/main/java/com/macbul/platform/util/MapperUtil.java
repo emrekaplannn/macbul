@@ -1,9 +1,11 @@
 // src/main/java/com/macbul/platform/util/MapperUtil.java
 package com.macbul.platform.util;
 
+import com.macbul.platform.dto.FeedbackDto;
 import com.macbul.platform.dto.MatchDto;
 import com.macbul.platform.dto.MatchParticipantDto;
 import com.macbul.platform.dto.MatchVideoDto;
+import com.macbul.platform.dto.NotificationDto;
 import com.macbul.platform.dto.ReferralCodeDto;
 import com.macbul.platform.dto.ReferralDto;
 import com.macbul.platform.dto.TeamDto;
@@ -13,9 +15,11 @@ import com.macbul.platform.dto.UserProfileCreateRequest;
 import com.macbul.platform.dto.UserProfileDto;
 import com.macbul.platform.dto.WalletCreateRequest;
 import com.macbul.platform.dto.WalletDto;
+import com.macbul.platform.model.Feedback;
 import com.macbul.platform.model.Match;
 import com.macbul.platform.model.MatchParticipant;
 import com.macbul.platform.model.MatchVideo;
+import com.macbul.platform.model.Notification;
 import com.macbul.platform.model.Referral;
 import com.macbul.platform.model.ReferralCode;
 import com.macbul.platform.model.Team;
@@ -149,6 +153,29 @@ public class MapperUtil {
         dto.setUserId(rc.getUser().getId());
         dto.setCode(rc.getCode());
         dto.setCreatedAt(rc.getCreatedAt());
+        return dto;
+    }
+
+
+    public FeedbackDto toFeedbackDto(Feedback fb) {
+        FeedbackDto dto = new FeedbackDto();
+        dto.setId(fb.getId());
+        dto.setMatchId(fb.getMatch().getId());
+        dto.setUserId(fb.getUser().getId());
+        dto.setRating(fb.getRating());
+        dto.setComment(fb.getComment());
+        dto.setCreatedAt(fb.getCreatedAt());
+        return dto;
+    }    
+
+    public NotificationDto toNotificationDto(Notification n) {
+        NotificationDto dto = new NotificationDto();
+        dto.setId(n.getId());
+        dto.setUserId(n.getUser().getId());
+        dto.setType(n.getType());
+        dto.setPayload(n.getPayload());
+        dto.setIsRead(n.getIsRead());
+        dto.setCreatedAt(n.getCreatedAt());
         return dto;
     }
 }
