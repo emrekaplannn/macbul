@@ -1,0 +1,291 @@
+-- 1. users Tablosu
+CREATE TABLE `users` (
+  `id`               VARCHAR(36)   NOT NULL,
+  `email`            VARCHAR(255)  NOT NULL,
+  `phone`            VARCHAR(20)   DEFAULT NULL,
+  `password_hash`    VARCHAR(255)  NOT NULL,
+  `registered_at`    BIGINT        NOT NULL,               -- epoch millis
+  `overall_score`    INT           DEFAULT NULL,            -- 0–100 arası puan, NULL olabilir
+  `is_banned`        BOOLEAN       NOT NULL DEFAULT FALSE,
+  `referred_by_code` VARCHAR(20)   DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_users_email` (`email`),
+  UNIQUE KEY `uq_users_phone` (`phone`),
+  KEY `idx_users_email` (`email`),
+  KEY `idx_users_phone` (`phone`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- 2. matches Tablosu
+CREATE TABLE `matches` (
+  `id`               VARCHAR(36)   NOT NULL,
+  `organizer_id`     VARCHAR(36)   NOT NULL,
+  `field_name`       VARCHAR(100)  NOT NULL,
+  `address`          VARCHAR(255)  NOT NULL,
+  `city`             VARCHAR(50)   NOT NULL,
+  `match_timestamp`  BIGINT        NOT NULL,               -- epoch millis
+  `price_per_user`   DECIMAL(8,2)  NOT NULL,
+  `total_slots`      INT           NOT NULL DEFAULT 14,
+  `created_at`       BIGINT        NOT NULL,               -- epoch millis
+  PRIMARY KEY (`id`),
+  KEY `idx_matches_timestamp` (`match_timestamp`),
+  CONSTRAINT `fk_matches_users`
+    FOREIGN KEY (`organizer_id`) REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- 3. teams Tablosu
+CREATE TABLE `teams` (
+  `id`            VARCHAR(36)   NOT NULL,
+  `match_id`      VARCHAR(36)   NOT NULL,
+  `team_number`   TINYINT       NOT NULL,
+  `average_score` INT           DEFAULT NULL,            -- 0–100 arası ortalama, NULL olabilir
+  `created_at`    BIGINT        NOT NULL,                -- epoch millis
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_teams_match_team` (`match_id`,`team_number`),
+  KEY `idx_teams_match` (`match_id`),
+  CONSTRAINT `fk_teams_matches`
+    FOREIGN KEY (`match_id`) REFERENCES `matches` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- 4. match_participants Tablosu
+CREATE TABLE `match_participants` (
+  `id`         VARCHAR(36)   NOT NULL,
+  `match_id`   VARCHAR(36)   NOT NULL,
+  `user_id`    VARCHAR(36)   NOT NULL,
+  `team_id`    VARCHAR(36)   DEFAULT NULL,
+  `joined_at`  BIGINT        NOT NULL,                    -- epoch millis
+  `has_paid`   BOOLEAN       NOT NULL DEFAULT FALSE,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_mp_match_user` (`match_id`,`user_id`),
+  KEY `idx_mp_match` (`match_id`),
+  KEY `idx_mp_user` (`user_id`),
+  CONSTRAINT `fk_mp_matches`
+    FOREIGN KEY (`match_id`) REFERENCES `matches` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_mp_users`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_mp_teams`
+    FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- 5. user_profiles Tablosu
+CREATE TABLE `user_profiles` (
+  `user_id`    VARCHAR(36)   NOT NULL,
+  `full_name`  VARCHAR(100)  DEFAULT NULL,
+  `position`   VARCHAR(50)   DEFAULT NULL,
+  `avatar_url` VARCHAR(255)  DEFAULT NULL,
+  `bio`        TEXT          DEFAULT NULL,
+  PRIMARY KEY (`user_id`),
+  CONSTRAINT `fk_user_profiles_users`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- 6. referral_codes Tablosu
+CREATE TABLE `referral_codes` (
+  `id`         VARCHAR(36)   NOT NULL,
+  `user_id`    VARCHAR(36)   NOT NULL,
+  `code`       VARCHAR(20)   NOT NULL,
+  `created_at` BIGINT        NOT NULL,                    -- epoch millis
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_referral_codes_code` (`code`),
+  KEY `idx_referral_codes_user` (`user_id`),
+  CONSTRAINT `fk_referral_codes_users`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- 7. referrals Tablosu
+CREATE TABLE `referrals` (
+  `id`               VARCHAR(36)   NOT NULL,
+  `referrer_user_id` VARCHAR(36)   NOT NULL,   -- referansı gönderen
+  `referred_user_id` VARCHAR(36)   NOT NULL,   -- referans kodu ile kayıt olan
+  `match_id`         VARCHAR(36)   DEFAULT NULL,
+  `reward_amount`    DECIMAL(10,2) DEFAULT NULL,
+  `rewarded`         BOOLEAN       NOT NULL DEFAULT FALSE,
+  `created_at`       BIGINT        NOT NULL,   -- epoch millis
+  PRIMARY KEY (`id`),
+  KEY `idx_referrals_referrer` (`referrer_user_id`),
+  KEY `idx_referrals_referred` (`referred_user_id`),
+  KEY `idx_referrals_match` (`match_id`),
+  CONSTRAINT `fk_referrals_referrer`
+    FOREIGN KEY (`referrer_user_id`) REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_referrals_referred`
+    FOREIGN KEY (`referred_user_id`) REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_referrals_matches`
+    FOREIGN KEY (`match_id`) REFERENCES `matches` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- 8. wallets Tablosu
+CREATE TABLE `wallets` (
+  `id`         VARCHAR(36)   NOT NULL,
+  `user_id`    VARCHAR(36)   NOT NULL,
+  `balance`    DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+  `updated_at` BIGINT        NOT NULL,    -- epoch millis
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_wallets_user` (`user_id`),
+  KEY `idx_wallets_user` (`user_id`),
+  CONSTRAINT `fk_wallets_users`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- 9. transactions Tablosu
+CREATE TABLE `transactions` (
+  `id`          VARCHAR(36)   NOT NULL,
+  `user_id`     VARCHAR(36)   NOT NULL,
+  `amount`      DECIMAL(12,2) NOT NULL,
+  `type`        ENUM('LOAD','PAY','REFUND') NOT NULL,
+  `description` VARCHAR(255)  DEFAULT NULL,
+  `created_at`  BIGINT        NOT NULL,    -- epoch millis
+  PRIMARY KEY (`id`),
+  KEY `idx_transactions_user` (`user_id`),
+  CONSTRAINT `fk_transactions_users`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- 10. feedbacks Tablosu
+CREATE TABLE `feedbacks` (
+  `id`                VARCHAR(36)   NOT NULL,
+  `match_id`          VARCHAR(36)   NOT NULL,
+  `reviewer_user_id`  VARCHAR(36)   NOT NULL,
+  `reviewed_user_id`  VARCHAR(36)   NOT NULL,
+  `rating`            TINYINT       NOT NULL,
+  `comment`           VARCHAR(500)  DEFAULT NULL,
+  `created_at`        BIGINT        NOT NULL,    -- epoch millis
+  PRIMARY KEY (`id`),
+  KEY `idx_feedbacks_match` (`match_id`),
+  KEY `idx_feedbacks_reviewer` (`reviewer_user_id`),
+  KEY `idx_feedbacks_reviewed` (`reviewed_user_id`),
+  CONSTRAINT `fk_feedbacks_matches`
+    FOREIGN KEY (`match_id`) REFERENCES `matches` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_feedbacks_reviewer`
+    FOREIGN KEY (`reviewer_user_id`) REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_feedbacks_reviewed`
+    FOREIGN KEY (`reviewed_user_id`) REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- 11. reports Tablosu
+CREATE TABLE `reports` (
+  `id`               VARCHAR(36)   NOT NULL,
+  `match_id`         VARCHAR(36)   NOT NULL,
+  `reporter_user_id` VARCHAR(36)   NOT NULL,
+  `reported_user_id` VARCHAR(36)   NOT NULL,
+  `reason`           VARCHAR(255)  NOT NULL,
+  `details`          TEXT          DEFAULT NULL,
+  `status`           ENUM('NEW','IN_REVIEW','RESOLVED','DISMISSED') NOT NULL DEFAULT 'NEW',
+  `created_at`       BIGINT        NOT NULL,   -- epoch millis
+  `resolved_at`      BIGINT        DEFAULT NULL,-- epoch millis
+  PRIMARY KEY (`id`),
+  KEY `idx_reports_match` (`match_id`),
+  KEY `idx_reports_reporter` (`reporter_user_id`),
+  KEY `idx_reports_reported` (`reported_user_id`),
+  CONSTRAINT `fk_reports_matches`
+    FOREIGN KEY (`match_id`) REFERENCES `matches` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_reports_reporter`
+    FOREIGN KEY (`reporter_user_id`) REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_reports_reported`
+    FOREIGN KEY (`reported_user_id`) REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- 12. match_videos Tablosu
+CREATE TABLE `match_videos` (
+  `id`          VARCHAR(36)   NOT NULL,
+  `match_id`    VARCHAR(36)   NOT NULL,
+  `video_url`   VARCHAR(255)  NOT NULL,
+  `uploaded_at` BIGINT        NOT NULL,    -- epoch millis
+  PRIMARY KEY (`id`),
+  KEY `idx_match_videos_match` (`match_id`),
+  CONSTRAINT `fk_match_videos_matches`
+    FOREIGN KEY (`match_id`) REFERENCES `matches` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- 13. video_clips Tablosu
+CREATE TABLE `video_clips` (
+  `id`             VARCHAR(36)   NOT NULL,
+  `match_video_id` VARCHAR(36)   NOT NULL,
+  `user_id`        VARCHAR(36)   NOT NULL,
+  `clip_url`       VARCHAR(255)  NOT NULL,
+  `start_sec`      INT           NOT NULL,
+  `end_sec`        INT           NOT NULL,
+  `created_at`     BIGINT        NOT NULL,    -- epoch millis
+  PRIMARY KEY (`id`),
+  KEY `idx_video_clips_mv` (`match_video_id`),
+  KEY `idx_video_clips_user` (`user_id`),
+  CONSTRAINT `fk_video_clips_match_videos`
+    FOREIGN KEY (`match_video_id`) REFERENCES `match_videos` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_video_clips_users`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- 14. notifications Tablosu
+CREATE TABLE `notifications` (
+  `id`         VARCHAR(36)   NOT NULL,
+  `user_id`    VARCHAR(36)   NOT NULL,
+  `type`       ENUM(
+                   'MATCH_CREATED',
+                   'MATCH_REMINDER',
+                   'NEW_PLAYER',
+                   'REPORT_UPDATE',
+                   'REFERRAL_REWARD'
+                 ) NOT NULL,
+  `payload`    JSON          DEFAULT NULL,
+  `is_read`    BOOLEAN       NOT NULL DEFAULT FALSE,
+  `created_at` BIGINT        NOT NULL,    -- epoch millis
+  PRIMARY KEY (`id`),
+  KEY `idx_notifications_user` (`user_id`),
+  CONSTRAINT `fk_notifications_users`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
