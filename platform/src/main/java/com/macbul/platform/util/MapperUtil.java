@@ -1,37 +1,8 @@
 // src/main/java/com/macbul/platform/util/MapperUtil.java
 package com.macbul.platform.util;
 
-import com.macbul.platform.dto.FeedbackDto;
-import com.macbul.platform.dto.MatchDto;
-import com.macbul.platform.dto.MatchParticipantDto;
-import com.macbul.platform.dto.MatchVideoDto;
-import com.macbul.platform.dto.NotificationDto;
-import com.macbul.platform.dto.ReferralCodeDto;
-import com.macbul.platform.dto.ReferralDto;
-import com.macbul.platform.dto.ReportDto;
-import com.macbul.platform.dto.TeamDto;
-import com.macbul.platform.dto.TransactionDto;
-import com.macbul.platform.dto.UserDto;
-import com.macbul.platform.dto.UserProfileCreateRequest;
-import com.macbul.platform.dto.UserProfileDto;
-import com.macbul.platform.dto.VideoClipDto;
-import com.macbul.platform.dto.WalletCreateRequest;
-import com.macbul.platform.dto.WalletDto;
-import com.macbul.platform.model.Feedback;
-import com.macbul.platform.model.Match;
-import com.macbul.platform.model.MatchParticipant;
-import com.macbul.platform.model.MatchVideo;
-import com.macbul.platform.model.Notification;
-import com.macbul.platform.model.Referral;
-import com.macbul.platform.model.ReferralCode;
-import com.macbul.platform.model.Report;
-import com.macbul.platform.model.Team;
-import com.macbul.platform.model.Transaction;
-import com.macbul.platform.model.User;
-import com.macbul.platform.model.UserProfile;
-import com.macbul.platform.model.VideoClip;
-import com.macbul.platform.model.Wallet;
-
+import com.macbul.platform.dto.*;
+import com.macbul.platform.model.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
@@ -44,45 +15,61 @@ public class MapperUtil {
         this.modelMapper = modelMapper;
     }
 
+    /* ---------- User ---------- */
+
     public UserDto toUserDto(User user) {
         return modelMapper.map(user, UserDto.class);
     }
 
-    // New: map UserProfile → UserProfileDto
+    /* ---------- UserProfile (explicit to avoid ambiguity) ---------- */
+
     public UserProfileDto toUserProfileDto(UserProfile profile) {
-        return modelMapper.map(profile, UserProfileDto.class);
+        if (profile == null) return null;
+        UserProfileDto dto = new UserProfileDto();
+        // IMPORTANT: take id ONLY from UserProfile.userId (not from user.id)
+        dto.setUserId(profile.getUserId());
+        dto.setFullName(profile.getFullName());
+        dto.setPosition(profile.getPosition());
+        dto.setAvatarUrl(profile.getAvatarUrl());
+        dto.setBio(profile.getBio());
+        return dto;
     }
 
-    // Optional: if you ever need to convert a CreateRequest into an entity
     public UserProfile toUserProfileEntity(UserProfileCreateRequest request) {
+        if (request == null) return null;
+        // If you need more control, map manually; for now ModelMapper is ok here
         return modelMapper.map(request, UserProfile.class);
     }
 
-     // --- New mapping for Wallet → WalletDto ---
+    /* ---------- Wallet ---------- */
+
     public WalletDto toWalletDto(Wallet wallet) {
+        if (wallet == null) return null;
         WalletDto dto = new WalletDto();
         dto.setId(wallet.getId());
-        dto.setUserId(wallet.getUser().getId());
+        dto.setUserId(wallet.getUser() != null ? wallet.getUser().getId() : null);
         dto.setBalance(wallet.getBalance());
         dto.setUpdatedAt(wallet.getUpdatedAt());
         return dto;
     }
 
-    // Optionally map CreateRequest → Wallet entity (partial)
     public Wallet toWalletEntity(WalletCreateRequest request, User user) {
+        if (request == null) return null;
         Wallet wallet = new Wallet();
-        wallet.setId(request.getUserId()); // We’ll use userId as the UUID or generate separately in Service
+        wallet.setId(request.getUserId());        // or generate in Service
         wallet.setUser(user);
         wallet.setBalance(request.getInitialBalance());
         wallet.setUpdatedAt(System.currentTimeMillis());
         return wallet;
     }
 
-    /** Transaction → TransactionDto */
+    /* ---------- Transactions ---------- */
+
     public TransactionDto toTransactionDto(Transaction tx) {
+        if (tx == null) return null;
         TransactionDto dto = new TransactionDto();
         dto.setId(tx.getId());
-        dto.setUserId(tx.getUser().getId());
+        dto.setUserId(tx.getUser() != null ? tx.getUser().getId() : null);
         dto.setAmount(tx.getAmount());
         dto.setType(tx.getType());
         dto.setDescription(tx.getDescription());
@@ -90,20 +77,26 @@ public class MapperUtil {
         return dto;
     }
 
+    /* ---------- Teams ---------- */
+
     public TeamDto toTeamDto(Team team) {
+        if (team == null) return null;
         TeamDto dto = new TeamDto();
         dto.setId(team.getId());
-        dto.setMatchId(team.getMatch().getId());
+        dto.setMatchId(team.getMatch() != null ? team.getMatch().getId() : null);
         dto.setTeamNumber(team.getTeamNumber());
         dto.setAverageScore(team.getAverageScore());
         dto.setCreatedAt(team.getCreatedAt());
         return dto;
     }
 
+    /* ---------- Matches ---------- */
+
     public MatchDto toMatchDto(Match match) {
+        if (match == null) return null;
         MatchDto dto = new MatchDto();
         dto.setId(match.getId());
-        dto.setOrganizerId(match.getOrganizer().getId());
+        dto.setOrganizerId(match.getOrganizer() != null ? match.getOrganizer().getId() : null);
         dto.setFieldName(match.getFieldName());
         dto.setAddress(match.getAddress());
         dto.setCity(match.getCity());
@@ -112,36 +105,38 @@ public class MapperUtil {
         dto.setTotalSlots(match.getTotalSlots());
         dto.setCreatedAt(match.getCreatedAt());
         return dto;
-    }    
-
+    }
 
     public MatchParticipantDto toMatchParticipantDto(MatchParticipant mp) {
+        if (mp == null) return null;
         MatchParticipantDto dto = new MatchParticipantDto();
         dto.setId(mp.getId());
-        dto.setMatchId(mp.getMatch().getId());
-        dto.setUserId(mp.getUser().getId());
+        dto.setMatchId(mp.getMatch() != null ? mp.getMatch().getId() : null);
+        dto.setUserId(mp.getUser() != null ? mp.getUser().getId() : null);
         dto.setTeamId(mp.getTeam() != null ? mp.getTeam().getId() : null);
         dto.setJoinedAt(mp.getJoinedAt());
         dto.setHasPaid(mp.getHasPaid());
         return dto;
     }
 
-
     public MatchVideoDto toMatchVideoDto(MatchVideo mv) {
+        if (mv == null) return null;
         MatchVideoDto dto = new MatchVideoDto();
         dto.setId(mv.getId());
-        dto.setMatchId(mv.getMatch().getId());
+        dto.setMatchId(mv.getMatch() != null ? mv.getMatch().getId() : null);
         dto.setVideoUrl(mv.getVideoUrl());
         dto.setUploadedAt(mv.getUploadedAt());
         return dto;
     }
 
+    /* ---------- Referrals ---------- */
 
     public ReferralDto toReferralDto(Referral r) {
+        if (r == null) return null;
         ReferralDto dto = new ReferralDto();
         dto.setId(r.getId());
-        dto.setReferrerUserId(r.getReferrerUser().getId());
-        dto.setReferredUserId(r.getReferredUser().getId());
+        dto.setReferrerUserId(r.getReferrerUser() != null ? r.getReferrerUser().getId() : null);
+        dto.setReferredUserId(r.getReferredUser() != null ? r.getReferredUser().getId() : null);
         dto.setMatchId(r.getMatch() != null ? r.getMatch().getId() : null);
         dto.setRewardAmount(r.getRewardAmount());
         dto.setRewarded(r.getRewarded());
@@ -149,33 +144,35 @@ public class MapperUtil {
         return dto;
     }
 
-
-
     public ReferralCodeDto toReferralCodeDto(ReferralCode rc) {
+        if (rc == null) return null;
         ReferralCodeDto dto = new ReferralCodeDto();
         dto.setId(rc.getId());
-        dto.setUserId(rc.getUser().getId());
+        dto.setUserId(rc.getUser() != null ? rc.getUser().getId() : null);
         dto.setCode(rc.getCode());
         dto.setCreatedAt(rc.getCreatedAt());
         return dto;
     }
 
+    /* ---------- Feedback / Notifications / Reports / Clips ---------- */
 
     public FeedbackDto toFeedbackDto(Feedback fb) {
+        if (fb == null) return null;
         FeedbackDto dto = new FeedbackDto();
         dto.setId(fb.getId());
-        dto.setMatchId(fb.getMatch().getId());
-        dto.setUserId(fb.getUser().getId());
+        dto.setMatchId(fb.getMatch() != null ? fb.getMatch().getId() : null);
+        dto.setUserId(fb.getUser() != null ? fb.getUser().getId() : null);
         dto.setRating(fb.getRating());
         dto.setComment(fb.getComment());
         dto.setCreatedAt(fb.getCreatedAt());
         return dto;
-    }    
+    }
 
     public NotificationDto toNotificationDto(Notification n) {
+        if (n == null) return null;
         NotificationDto dto = new NotificationDto();
         dto.setId(n.getId());
-        dto.setUserId(n.getUser().getId());
+        dto.setUserId(n.getUser() != null ? n.getUser().getId() : null);
         dto.setType(n.getType());
         dto.setPayload(n.getPayload());
         dto.setIsRead(n.getIsRead());
@@ -183,13 +180,13 @@ public class MapperUtil {
         return dto;
     }
 
-
     public ReportDto toReportDto(Report r) {
+        if (r == null) return null;
         ReportDto dto = new ReportDto();
         dto.setId(r.getId());
-        dto.setMatchId(r.getMatch().getId());
-        dto.setReporterUserId(r.getReporter().getId());
-        dto.setReportedUserId(r.getReported().getId());
+        dto.setMatchId(r.getMatch() != null ? r.getMatch().getId() : null);
+        dto.setReporterUserId(r.getReporter() != null ? r.getReporter().getId() : null);
+        dto.setReportedUserId(r.getReported() != null ? r.getReported().getId() : null);
         dto.setReason(r.getReason());
         dto.setDetails(r.getDetails());
         dto.setStatus(r.getStatus());
@@ -198,12 +195,12 @@ public class MapperUtil {
         return dto;
     }
 
-
     public VideoClipDto toVideoClipDto(VideoClip vc) {
+        if (vc == null) return null;
         VideoClipDto dto = new VideoClipDto();
         dto.setId(vc.getId());
-        dto.setMatchVideoId(vc.getMatchVideo().getId());
-        dto.setUserId(vc.getUser().getId());
+        dto.setMatchVideoId(vc.getMatchVideo() != null ? vc.getMatchVideo().getId() : null);
+        dto.setUserId(vc.getUser() != null ? vc.getUser().getId() : null);
         dto.setClipUrl(vc.getClipUrl());
         dto.setStartSec(vc.getStartSec());
         dto.setEndSec(vc.getEndSec());

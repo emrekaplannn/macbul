@@ -2,6 +2,7 @@
 package com.macbul.platform.config;
 
 import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -9,6 +10,10 @@ import org.springframework.context.annotation.Configuration;
 public class ModelMapperConfig {
     @Bean
     public ModelMapper modelMapper() {
-        return new ModelMapper();
+        ModelMapper mm = new ModelMapper();
+        mm.getConfiguration()
+          .setMatchingStrategy(MatchingStrategies.STRICT)
+          .setAmbiguityIgnored(true); // Ignore ambiguous mappings
+        return mm;
     }
 }
