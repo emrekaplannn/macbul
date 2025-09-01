@@ -150,6 +150,7 @@ public class MapperUtil {
         dto.setId(rc.getId());
         dto.setUserId(rc.getUser() != null ? rc.getUser().getId() : null);
         dto.setCode(rc.getCode());
+        dto.setStatus(rc.getStatus()); 
         dto.setCreatedAt(rc.getCreatedAt());
         return dto;
     }

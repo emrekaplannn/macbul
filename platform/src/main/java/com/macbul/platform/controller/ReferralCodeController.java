@@ -30,10 +30,16 @@ public class ReferralCodeController {
         return ResponseEntity.ok(service.getById(id));
     }
 
+    @GetMapping("/user-actives/{userId}")
+    public ReferralCodeDto getActiveForUser(@PathVariable String userId) {
+        return service.getActiveCodeForUser(userId);
+    }
+
     @Operation(summary = "List all referral codes")
     @GetMapping
     public ResponseEntity<List<ReferralCodeDto>> listAll() {
         return ResponseEntity.ok(service.getAll());
+        
     }
 
     @Operation(summary = "List by user ID")

@@ -1,6 +1,8 @@
 // src/main/java/com/macbul/platform/model/ReferralCode.java
 package com.macbul.platform.model;
 
+import com.macbul.platform.util.ReferralCodeStatus;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -30,6 +32,10 @@ public class ReferralCode {
 
     @Column(name = "code", length = 20, nullable = false, unique = true)
     private String code;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 16, nullable = false)
+    private ReferralCodeStatus status = ReferralCodeStatus.ACTIVE;
 
     @Column(name = "created_at", nullable = false)
     private Long createdAt;

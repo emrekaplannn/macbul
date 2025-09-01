@@ -100,6 +100,7 @@ CREATE TABLE `referral_codes` (
   `id`         VARCHAR(36)   NOT NULL,
   `user_id`    VARCHAR(36)   NOT NULL,
   `code`       VARCHAR(20)   NOT NULL,
+  `status`     ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
   `created_at` BIGINT        NOT NULL,                    -- epoch millis
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_referral_codes_code` (`code`),

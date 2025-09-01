@@ -6,6 +6,8 @@ import com.macbul.platform.exception.ResourceNotFoundException;
 import com.macbul.platform.model.*;
 import com.macbul.platform.repository.*;
 import com.macbul.platform.util.MapperUtil;
+import com.macbul.platform.util.ReferralCodeStatus;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,10 +33,17 @@ public class ReferralCodeService {
             throw new IllegalArgumentException("Code already in use: " + req.getCode());
         });
 
+        // Deactivate existing active codes for this user
+        List<ReferralCode> actives = repo
+                .findByUserIdAndStatus(user.getId(), ReferralCodeStatus.ACTIVE);
+        actives.forEach(rc -> rc.setStatus(ReferralCodeStatus.INACTIVE));
+        repo.saveAll(actives);
+
         ReferralCode rc = new ReferralCode();
         rc.setId(UUID.randomUUID().toString());
         rc.setUser(user);
         rc.setCode(req.getCode());
+        rc.setStatus(ReferralCodeStatus.ACTIVE);
         rc.setCreatedAt(System.currentTimeMillis());
 
         return mapper.toReferralCodeDto(repo.save(rc));
@@ -44,6 +53,13 @@ public class ReferralCodeService {
     public ReferralCodeDto getById(String id) {
         ReferralCode rc = repo.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("ReferralCode not found: " + id));
+        return mapper.toReferralCodeDto(rc);
+    }
+
+    public ReferralCodeDto getActiveCodeForUser(String userId) {
+        ReferralCode rc = repo
+                .findFirstByUserIdAndStatusOrderByCreatedAtDesc(userId, ReferralCodeStatus.ACTIVE)
+                .orElseThrow(() -> new ResourceNotFoundException("Active referral code not found for user " + userId));
         return mapper.toReferralCodeDto(rc);
     }
 
@@ -82,6 +98,8 @@ public class ReferralCodeService {
             });
             rc.setCode(req.getCode());
         }
+
+        rc.setStatus(req.getStatus() != null ? req.getStatus() : rc.getStatus());
 
         return mapper.toReferralCodeDto(repo.save(rc));
     }
