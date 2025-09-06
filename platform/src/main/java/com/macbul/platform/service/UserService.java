@@ -1,14 +1,20 @@
 package com.macbul.platform.service;
 
+import com.macbul.platform.dto.EmailVerificationRequest;
 import com.macbul.platform.dto.UserCreateRequest;
 import com.macbul.platform.dto.UserDto;
 import com.macbul.platform.dto.UserUpdateRequest;
 import com.macbul.platform.exception.ResourceNotFoundException;
+import com.macbul.platform.model.Otp;
 import com.macbul.platform.model.User;
+import com.macbul.platform.repository.OtpRepository;
 import com.macbul.platform.repository.UserRepository;
 import com.macbul.platform.util.MapperUtil;
+import com.macbul.platform.util.OtpType;
 
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +31,8 @@ public class UserService {
     @Autowired
     private MapperUtil mapperUtil;
 
+    @Autowired
+    private OtpRepository otpRepository;
 
     public UserDto createUser(UserCreateRequest request) {
         // E-posta veya telefon zaten var mı kontrolü
@@ -106,4 +114,52 @@ public class UserService {
         }
         userRepository.deleteById(id);
     }
+
+
+    public UserDto verifyEmail(String userId) {
+        // Fetch user entity by ID
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+        // Set email_verified to true
+        if(!user.getEmailVerified()) {
+            
+            user.setEmailVerified(true);
+
+            // Save updated entity
+            userRepository.save(user);
+        }
+
+        // Return as DTO
+        return mapperUtil.toUserDto(user);
+    }
+
+    // inside UserService.java
+    public UserDto verifyEmailByCode(EmailVerificationRequest request) throws BadRequestException {
+        String userId = request.getUserId();
+        if (userId == null || userId.isBlank()) {
+            throw new BadRequestException("User ID is required");
+        }
+
+        Otp otp = otpRepository
+            .findByUserIdAndCodeAndType(userId, request.getCode(), OtpType.EMAIL_VERIFY)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+        if (otp.getUsedAt() != null) {
+            throw new BadRequestException("Code already used");
+        }
+        Long now = System.currentTimeMillis();
+        if (otp.getExpiresAt() != null && otp.getExpiresAt() < now) {
+            throw new BadRequestException("Code expiredd");
+        }
+
+        UserDto userDto =  verifyEmail(userId);
+
+        otp.setUsedAt(now);
+        otpRepository.save(otp);
+
+        return userDto;
+    }
+
+
 }

@@ -15,6 +15,9 @@ public class User {
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
+    @Column(nullable = false)
+    private Boolean emailVerified = false;
+
     @Column(length = 20, unique = true)
     private String phone;
 

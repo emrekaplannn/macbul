@@ -1,11 +1,14 @@
 package com.macbul.platform.controller;
 
+import com.macbul.platform.dto.EmailVerificationRequest;
 import com.macbul.platform.dto.UserCreateRequest;
 import com.macbul.platform.dto.UserDto;
 import com.macbul.platform.dto.UserUpdateRequest;
 import com.macbul.platform.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -73,4 +76,16 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
+    // in UserController.java
+    @Operation(
+        summary = "Verify user email with code",
+        description = "Marks the user's email as verified using an OTP code and userId"
+    )
+    @PostMapping("/verify-email")
+    public ResponseEntity<UserDto> verifyEmailByCode(@RequestBody EmailVerificationRequest request) throws BadRequestException {
+        UserDto updated = userService.verifyEmailByCode(request);
+        return ResponseEntity.ok(updated);
+    }
+
 }
