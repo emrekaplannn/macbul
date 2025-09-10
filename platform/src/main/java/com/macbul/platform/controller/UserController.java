@@ -23,6 +23,9 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private com.macbul.platform.util.SecurityUtils securityUtils;
+
     @Operation(
         summary = "Register a new user",
         description = "Creates a new user with email, password, phone, and referral code"
@@ -84,7 +87,8 @@ public class UserController {
     )
     @PostMapping("/verify-email")
     public ResponseEntity<UserDto> verifyEmailByCode(@RequestBody EmailVerificationRequest request) throws BadRequestException {
-        UserDto updated = userService.verifyEmailByCode(request);
+        String userId = securityUtils.getCurrentUserId();
+        UserDto updated = userService.verifyEmailByCode(request, userId);
         return ResponseEntity.ok(updated);
     }
 

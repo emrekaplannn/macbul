@@ -8,6 +8,5 @@ import lombok.Data;
  */
 @Data
 public class ReferralCodeCreateRequest {
-    private String userId;
     private String code;
 }

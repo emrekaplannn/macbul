@@ -36,20 +36,20 @@ public class UserProfileService {
     /**
      * Create a new UserProfile for an existing User.
      */
-    public UserProfileDto createProfile(UserProfileCreateRequest request) {
+
+    public UserProfileDto createProfile(UserProfileCreateRequest request, String userId) {
         // Verify the User exists
-        User user = userRepository.findById(request.getUserId())
-            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + request.getUserId()));
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
         // If profile already exists, prevent duplicate
-        if (userProfileRepository.existsById(request.getUserId())) {
-            throw new IllegalArgumentException("Profile already exists for user: " + request.getUserId());
+        if (userProfileRepository.existsById(userId)) {
+            throw new IllegalArgumentException("Profile already exists for user: " + userId);
         }
 
-        // Build entity
+        // Build entity (PK = userId, mapped from user via @MapsId)
         UserProfile profile = new UserProfile();
-        profile.setUserId(request.getUserId());
-        profile.setUser(user);
+        profile.setUser(user); // @MapsId → userId otomatik eşleşir
         profile.setFullName(request.getFullName());
         profile.setPosition(request.getPosition());
         profile.setAvatarUrl(request.getAvatarUrl());

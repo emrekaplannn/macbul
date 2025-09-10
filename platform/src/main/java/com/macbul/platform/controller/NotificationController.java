@@ -18,6 +18,9 @@ public class NotificationController {
 
     @Autowired private NotificationService service;
 
+    @Autowired
+    private com.macbul.platform.util.SecurityUtils securityUtils;
+
     @Operation(summary = "Create a notification")
     @PostMapping
     public ResponseEntity<NotificationDto> create(@RequestBody NotificationCreateRequest req) {
@@ -37,8 +40,9 @@ public class NotificationController {
     }
 
     @Operation(summary = "List notifications by user ID")
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<NotificationDto>> listByUser(@PathVariable String userId) {
+    @GetMapping("/user")
+    public ResponseEntity<List<NotificationDto>> listByUser() {
+        String userId = securityUtils.getCurrentUserId();
         return ResponseEntity.ok(service.getByUserId(userId));
     }
 

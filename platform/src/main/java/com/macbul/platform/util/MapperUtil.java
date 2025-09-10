@@ -56,7 +56,7 @@ public class MapperUtil {
     public Wallet toWalletEntity(WalletCreateRequest request, User user) {
         if (request == null) return null;
         Wallet wallet = new Wallet();
-        wallet.setId(request.getUserId());        // or generate in Service
+        wallet.setId(user.getId());        // or generate in Service
         wallet.setUser(user);
         wallet.setBalance(request.getInitialBalance());
         wallet.setUpdatedAt(System.currentTimeMillis());

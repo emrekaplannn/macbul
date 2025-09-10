@@ -13,8 +13,6 @@ public class UserProfileCreateRequest {
      * UUID of an existing User. 
      * This will become the primary key of the new profile.
      */
-    private String userId;
-
     private String fullName;
     private String position;
     private String avatarUrl;

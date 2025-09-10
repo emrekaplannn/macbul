@@ -18,10 +18,14 @@ public class ReferralCodeController {
 
     @Autowired private ReferralCodeService service;
 
+    @Autowired
+    private com.macbul.platform.util.SecurityUtils securityUtils;
+
     @Operation(summary = "Generate a new referral code")
     @PostMapping
     public ResponseEntity<ReferralCodeDto> create(@RequestBody ReferralCodeCreateRequest req) {
-        return ResponseEntity.ok(service.create(req));
+        String userId = securityUtils.getCurrentUserId();
+        return ResponseEntity.ok(service.create(req, userId));
     }
 
     @Operation(summary = "Get referral code by ID")
@@ -30,8 +34,9 @@ public class ReferralCodeController {
         return ResponseEntity.ok(service.getById(id));
     }
 
-    @GetMapping("/user-actives/{userId}")
-    public ReferralCodeDto getActiveForUser(@PathVariable String userId) {
+    @GetMapping("/user-actives")
+    public ReferralCodeDto getActiveForUser() {
+        String userId = securityUtils.getCurrentUserId();
         return service.getActiveCodeForUser(userId);
     }
 
@@ -43,8 +48,9 @@ public class ReferralCodeController {
     }
 
     @Operation(summary = "List by user ID")
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<ReferralCodeDto>> listByUser(@PathVariable String userId) {
+    @GetMapping("/user")
+    public ResponseEntity<List<ReferralCodeDto>> listByUser() {
+        String userId = securityUtils.getCurrentUserId();
         return ResponseEntity.ok(service.getByUserId(userId));
     }
 

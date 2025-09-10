@@ -14,28 +14,38 @@ import com.macbul.platform.util.OtpType;
 
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
+import org.springframework.security.core.userdetails.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @Transactional
-public class UserService {
+public class UserService implements UserDetailsService {
 
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private UserRepository userRepository;
+    @Autowired private MapperUtil mapperUtil;
+    @Autowired private OtpRepository otpRepository;
+    @Autowired private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private MapperUtil mapperUtil;
+    // === Security: UserDetailsService ===
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User u = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return org.springframework.security.core.userdetails.User
+                .withUsername(u.getEmail())
+                .password(u.getPasswordHash())
+                .roles("USER") // tablo yok; herkes USER
+                .accountLocked(false).disabled(false).build();
+    }
 
-    @Autowired
-    private OtpRepository otpRepository;
-
+    // === Domain ===
     public UserDto createUser(UserCreateRequest request) {
-        // E-posta veya telefon zaten var mı kontrolü
         userRepository.findByEmail(request.getEmail()).ifPresent(u -> {
             throw new IllegalArgumentException("Bu e-posta zaten kayıtlı.");
         });
@@ -45,51 +55,35 @@ public class UserService {
             });
         }
 
-        // Entity nesnesini oluştur
         User newUser = new User();
         newUser.setId(UUID.randomUUID().toString());
         newUser.setEmail(request.getEmail());
         newUser.setPhone(request.getPhone());
-        // NOT: Şifre hash’leme yok; yalın metin kaydediliyor. Üretimde mutlaka hash kullanın.
-        newUser.setPasswordHash(request.getPassword());
+        // 🔒 BCrypt hash
+        newUser.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         newUser.setRegisteredAt(System.currentTimeMillis());
         newUser.setOverallScore(null);
         newUser.setIsBanned(false);
         newUser.setReferredByCode(request.getReferredByCode());
 
-        // Veritabanına kaydet
         User saved = userRepository.save(newUser);
-
-        // DTO’ya dönüştür ve dön
         return mapperUtil.toUserDto(saved);
     }
 
-   
     public UserDto getUserById(String id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı: " + id));
         return mapperUtil.toUserDto(user);
     }
 
-    /**
-     * Returns a list of all users.
-     */
     public List<UserDto> getAllUsers() {
-        // Örnek implementasyon:
-        return userRepository.findAll()
-                             .stream()
-                             .map(mapperUtil::toUserDto)
-                             .toList();
+        return userRepository.findAll().stream().map(mapperUtil::toUserDto).toList();
     }
 
-    /**
-     * Updates an existing user's email, phone, or referral code.
-     */
     public UserDto updateUser(String id, UserUpdateRequest request) {
         User existing = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
 
-        // Sadece non-null alanları güncelle
         if (request.getEmail() != null && !request.getEmail().isBlank()) {
             existing.setEmail(request.getEmail());
         }
@@ -104,10 +98,6 @@ public class UserService {
         return mapperUtil.toUserDto(updated);
     }
 
-
-    /**
-     * Deletes a user by ID.
-     */
     public void deleteUser(String id) {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User not found: " + id);
@@ -115,51 +105,35 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-
     public UserDto verifyEmail(String userId) {
-        // Fetch user entity by ID
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-        // Set email_verified to true
-        if(!user.getEmailVerified()) {
-            
+        if (Boolean.FALSE.equals(user.getEmailVerified())) {
             user.setEmailVerified(true);
-
-            // Save updated entity
             userRepository.save(user);
         }
-
-        // Return as DTO
         return mapperUtil.toUserDto(user);
     }
 
-    // inside UserService.java
-    public UserDto verifyEmailByCode(EmailVerificationRequest request) throws BadRequestException {
-        String userId = request.getUserId();
-        if (userId == null || userId.isBlank()) {
-            throw new BadRequestException("User ID is required");
-        }
+    public UserDto verifyEmailByCode(EmailVerificationRequest request, String userId) throws BadRequestException {
+        if (userId == null || userId.isBlank()) throw new BadRequestException("User ID is required");
 
         Otp otp = otpRepository
             .findByUserIdAndCodeAndType(userId, request.getCode(), OtpType.EMAIL_VERIFY)
             .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
-        if (otp.getUsedAt() != null) {
-            throw new BadRequestException("Code already used");
-        }
+        if (otp.getUsedAt() != null) throw new BadRequestException("Code already used");
         Long now = System.currentTimeMillis();
-        if (otp.getExpiresAt() != null && otp.getExpiresAt() < now) {
-            throw new BadRequestException("Code expiredd");
-        }
+        if (otp.getExpiresAt() != null && otp.getExpiresAt() < now) throw new BadRequestException("Code expiredd");
 
-        UserDto userDto =  verifyEmail(userId);
-
+        UserDto userDto = verifyEmail(userId);
         otp.setUsedAt(now);
         otpRepository.save(otp);
-
         return userDto;
     }
 
-
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email.toLowerCase());
+    }
 }

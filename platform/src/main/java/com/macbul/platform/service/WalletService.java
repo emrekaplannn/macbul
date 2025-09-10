@@ -37,9 +37,9 @@ public class WalletService {
      * Create a new Wallet for an existing User.
      * If initialBalance is null, defaults to 0.00.
      */
-    public WalletDto createWallet(WalletCreateRequest request) {
-        User user = userRepository.findById(request.getUserId())
-            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + request.getUserId()));
+    public WalletDto createWallet(WalletCreateRequest request, String userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
         if (walletRepository.findByUserId(user.getId()).isPresent()) {
             throw new IllegalArgumentException("Wallet already exists for user: " + user.getId());

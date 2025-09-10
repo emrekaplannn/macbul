@@ -24,9 +24,9 @@ public class ReferralCodeService {
     @Autowired private MapperUtil             mapper;
 
     /** Create a new referral code */
-    public ReferralCodeDto create(ReferralCodeCreateRequest req) {
-        User user = userRepo.findById(req.getUserId())
-            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + req.getUserId()));
+    public ReferralCodeDto create(ReferralCodeCreateRequest req, String userId) {
+        User user = userRepo.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
         // enforce code uniqueness
         repo.findByCode(req.getCode()).ifPresent(rc -> {

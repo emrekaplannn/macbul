@@ -13,6 +13,5 @@ import lombok.Data;
 @Data
 public class WalletCreateRequest {
 
-    private String userId;
     private BigDecimal initialBalance;
 }

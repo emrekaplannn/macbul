@@ -24,16 +24,21 @@ public class UserProfileController {
     @Autowired
     private UserProfileService profileService;
 
+    @Autowired
+    private com.macbul.platform.util.SecurityUtils securityUtils;
+
     @Operation(summary = "Create new profile", description = "Creates a profile for an existing user")
     @PostMapping
     public ResponseEntity<UserProfileDto> createProfile(@RequestBody UserProfileCreateRequest request) {
-        UserProfileDto created = profileService.createProfile(request);
+        String userId = securityUtils.getCurrentUserId();
+        UserProfileDto created = profileService.createProfile(request, userId);
         return ResponseEntity.ok(created);
     }
 
     @Operation(summary = "Get profile by userId", description = "Returns the profile data for the given userId")
-    @GetMapping("/{userId}")
-    public ResponseEntity<UserProfileDto> getProfile(@PathVariable String userId) {
+    @GetMapping("/me")
+    public ResponseEntity<UserProfileDto> getProfile() {
+        String userId = securityUtils.getCurrentUserId();
         UserProfileDto dto = profileService.getProfileByUserId(userId);
         return ResponseEntity.ok(dto);
     }
@@ -46,18 +51,19 @@ public class UserProfileController {
     }
 
     @Operation(summary = "Update profile", description = "Updates the profile fields for the specified userId")
-    @PutMapping("/{userId}")
+    @PutMapping
     public ResponseEntity<UserProfileDto> updateProfile(
-            @PathVariable String userId,
             @RequestBody UserProfileUpdateRequest request
     ) {
+        String userId = securityUtils.getCurrentUserId();
         UserProfileDto updated = profileService.updateProfile(userId, request);
         return ResponseEntity.ok(updated);
     }
 
     @Operation(summary = "Delete profile", description = "Deletes the profile for the given userId")
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteProfile(@PathVariable String userId) {
+    @DeleteMapping
+    public ResponseEntity<Void> deleteProfile() {
+        String userId = securityUtils.getCurrentUserId();
         profileService.deleteProfile(userId);
         return ResponseEntity.noContent().build();
     }

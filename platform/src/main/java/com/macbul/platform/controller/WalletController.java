@@ -22,10 +22,14 @@ public class WalletController {
     @Autowired
     private WalletService walletService;
 
+    @Autowired
+    private com.macbul.platform.util.SecurityUtils securityUtils;
+
     @Operation(summary = "Create a new wallet", description = "Creates a wallet for an existing user (initial balance optional)")
     @PostMapping
     public ResponseEntity<WalletDto> createWallet(@RequestBody WalletCreateRequest request) {
-        WalletDto created = walletService.createWallet(request);
+        String userId = securityUtils.getCurrentUserId();
+        WalletDto created = walletService.createWallet(request, userId);
         return ResponseEntity.ok(created);
     }
 
@@ -37,8 +41,9 @@ public class WalletController {
     }
 
     @Operation(summary = "Get wallet by user ID", description = "Fetch a wallet by the associated user’s ID")
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<WalletDto> getWalletByUserId(@PathVariable String userId) {
+    @GetMapping("/user")
+    public ResponseEntity<WalletDto> getWalletByUserId() {
+        String userId = securityUtils.getCurrentUserId();
         WalletDto dto = walletService.getWalletByUserId(userId);
         return ResponseEntity.ok(dto);
     }

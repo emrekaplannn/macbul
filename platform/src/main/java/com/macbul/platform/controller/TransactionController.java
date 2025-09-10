@@ -18,6 +18,9 @@ public class TransactionController {
 
     @Autowired private TransactionService txService;
 
+    @Autowired
+    private com.macbul.platform.util.SecurityUtils securityUtils;
+
     @Operation(summary = "Create transaction")
     @PostMapping
     public ResponseEntity<TransactionDto> create(@RequestBody TransactionCreateRequest req) {
@@ -37,8 +40,9 @@ public class TransactionController {
     }
 
     @Operation(summary = "List transactions by user ID")
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<TransactionDto>> listByUser(@PathVariable String userId) {
+    @GetMapping("/user")
+    public ResponseEntity<List<TransactionDto>> listByUser() {
+        String userId = securityUtils.getCurrentUserId();
         return ResponseEntity.ok(txService.getByUserId(userId));
     }
 
