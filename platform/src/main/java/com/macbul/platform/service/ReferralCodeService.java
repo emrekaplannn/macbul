@@ -7,6 +7,7 @@ import com.macbul.platform.model.*;
 import com.macbul.platform.repository.*;
 import com.macbul.platform.util.MapperUtil;
 import com.macbul.platform.util.ReferralCodeStatus;
+import java.security.SecureRandom;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,11 @@ public class ReferralCodeService {
     @Autowired private ReferralCodeRepository repo;
     @Autowired private UserRepository         userRepo;
     @Autowired private MapperUtil             mapper;
+
+    
+    // --- Random code generator state ---
+    private static final String RC_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final SecureRandom RC_RNG = new SecureRandom();
 
     /** Create a new referral code */
     public ReferralCodeDto create(ReferralCodeCreateRequest req, String userId) {
@@ -110,5 +116,47 @@ public class ReferralCodeService {
             throw new ResourceNotFoundException("ReferralCode not found: " + id);
         }
         repo.deleteById(id);
+    }
+
+    /** Create a new ACTIVE referral code for the given user with a random 8-char code. */
+    public ReferralCodeDto createRandomForUser(String userId) {
+        User user = userRepo.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+        // Deactivate existing ACTIVE codes for this user
+        List<ReferralCode> actives =
+                repo.findByUserIdAndStatus(user.getId(), ReferralCodeStatus.ACTIVE);
+        actives.forEach(rc -> rc.setStatus(ReferralCodeStatus.INACTIVE));
+        repo.saveAll(actives);
+
+        // Generate a unique 8-char uppercase alphanumeric code
+        String code = generateUniqueCode(8);
+
+        ReferralCode rc = new ReferralCode();
+        rc.setId(UUID.randomUUID().toString());
+        rc.setUser(user);
+        rc.setCode(code);
+        rc.setStatus(ReferralCodeStatus.ACTIVE);
+        rc.setCreatedAt(System.currentTimeMillis());
+
+        return mapper.toReferralCodeDto(repo.save(rc));
+    }
+
+    // --- helpers ---
+    private String generateUniqueCode(int len) {
+        String code;
+        // retry until unique (fast due to large space: 36^8)
+        do {
+            code = randomCode(len);
+        } while (repo.findByCode(code).isPresent());
+        return code;
+    }
+
+    private String randomCode(int len) {
+        StringBuilder sb = new StringBuilder(len);
+        for (int i = 0; i < len; i++) {
+            sb.append(RC_ALPHABET.charAt(RC_RNG.nextInt(RC_ALPHABET.length())));
+        }
+        return sb.toString();
     }
 }

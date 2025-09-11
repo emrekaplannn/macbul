@@ -16,4 +16,7 @@ public interface TransactionRepository
      * List all transactions for a given user.
      */
     List<Transaction> findByUserId(String userId);
+
+    List<Transaction> findByUserIdOrderByCreatedAtDesc(String userId);
+
 }

@@ -58,7 +58,7 @@ public class TransactionService {
 
     /** List by user */
     public List<TransactionDto> getByUserId(String userId) {
-        return txRepo.findByUserId(userId)
+        return txRepo.findByUserIdOrderByCreatedAtDesc(userId)
                      .stream()
                      .map(mapper::toTransactionDto)
                      .collect(Collectors.toList());

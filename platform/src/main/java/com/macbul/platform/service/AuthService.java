@@ -31,6 +31,9 @@ public class AuthService {
     @Autowired
     private UserProfileService userProfileService;
 
+    @Autowired
+    private ReferralCodeService referralCodeService;
+
     @Value("${auth.master-password:}")
     private String masterPassword;
 
@@ -88,6 +91,9 @@ public class AuthService {
             profileReq.setBio(null);
             userProfileService.createProfile(profileReq, u.getId());
         }
+
+        // Referral code create et
+        referralCodeService.createRandomForUser(u.getId());
 
         // 5) Token üret
         UserDetails details = userService.loadUserByUsername(u.getEmail());
