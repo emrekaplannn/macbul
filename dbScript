@@ -4,6 +4,7 @@ CREATE TABLE `users` (
   `email`            VARCHAR(255)  NOT NULL,
   'email_verified' BOOLEAN       NOT NULL DEFAULT FALSE,
   `phone`            VARCHAR(20)   DEFAULT NULL,
+  'phone_verified' BOOLEAN       NOT NULL DEFAULT FALSE,
   `password_hash`    VARCHAR(255)  NOT NULL,
   `registered_at`    BIGINT        NOT NULL,               -- epoch millis
   `overall_score`    INT           DEFAULT NULL,            -- 0–100 arası puan, NULL olabilir
@@ -86,7 +87,7 @@ CREATE TABLE `user_profiles` (
   `user_id`    VARCHAR(36)   NOT NULL,
   `full_name`  VARCHAR(100)  DEFAULT NULL,
   `position`   VARCHAR(50)   DEFAULT NULL,
-  `avatar_url` VARCHAR(255)  DEFAULT NULL,
+  `avatar_path` VARCHAR(255)  DEFAULT NULL,
   `bio`        TEXT          DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   CONSTRAINT `fk_user_profiles_users`
@@ -296,6 +297,7 @@ CREATE TABLE `notifications` (
 CREATE TABLE otp (
   id          VARCHAR(36)  PRIMARY KEY,
   user_id     VARCHAR(36)  NOT NULL,
+  destination VARCHAR(255) NOT NULL,
   code        VARCHAR(15)  NOT NULL,
   type        ENUM('EMAIL_VERIFY') NOT NULL,
   expires_at  BIGINT       NOT NULL,
