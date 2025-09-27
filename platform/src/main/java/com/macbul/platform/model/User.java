@@ -22,6 +22,9 @@ public class User {
     private String phone;
 
     @Column(nullable = false)
+    private Boolean phoneVerified = false;
+
+    @Column(nullable = false)
     private String passwordHash;
 
     @Column(nullable = false)

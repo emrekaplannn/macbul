@@ -1,11 +1,13 @@
 package com.macbul.platform.service;
 
+import com.macbul.platform.dto.OtpCreateRequest;
 import com.macbul.platform.dto.UserProfileCreateRequest;
 import com.macbul.platform.dto.WalletCreateRequest;
 import com.macbul.platform.dto.auth.*;
 import com.macbul.platform.model.User;
 import com.macbul.platform.repository.UserRepository;
 import com.macbul.platform.util.JwtService;
+import com.macbul.platform.util.OtpType;
 
 import java.math.BigDecimal;
 
@@ -33,6 +35,9 @@ public class AuthService {
 
     @Autowired
     private ReferralCodeService referralCodeService;
+
+    @Autowired
+    private OtpService otpService;
 
     @Value("${auth.master-password:}")
     private String masterPassword;
@@ -87,10 +92,17 @@ public class AuthService {
             UserProfileCreateRequest profileReq = new UserProfileCreateRequest();
             profileReq.setFullName(req.fullName());
             profileReq.setPosition(req.position());
-            profileReq.setAvatarUrl(req.avatarUrl());
+            profileReq.setAvatarPath(req.avatarPath());
             profileReq.setBio(null);
             userProfileService.createProfile(profileReq, u.getId());
         }
+
+        OtpCreateRequest otpReq = new OtpCreateRequest();
+        otpReq.setType(OtpType.EMAIL_VERIFY);
+        otpReq.setDestination(u.getEmail());
+
+        // Otp oluştur ve gönder (aynı TX içinde)(email için)
+        otpService.create(u.getId(), otpReq, true);
 
         // Referral code create et
         referralCodeService.createRandomForUser(u.getId());

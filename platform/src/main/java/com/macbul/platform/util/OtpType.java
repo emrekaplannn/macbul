@@ -1,3 +1,3 @@
 package com.macbul.platform.util;
 
-public enum OtpType { EMAIL_VERIFY }
+public enum OtpType { EMAIL_VERIFY, PHONE_VERIFY }

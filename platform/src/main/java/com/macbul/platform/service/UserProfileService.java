@@ -52,7 +52,7 @@ public class UserProfileService {
         profile.setUser(user); // @MapsId → userId otomatik eşleşir
         profile.setFullName(request.getFullName());
         profile.setPosition(request.getPosition());
-        profile.setAvatarUrl(request.getAvatarUrl());
+        profile.setAvatarPath(request.getAvatarPath());
         profile.setBio(request.getBio());
 
         // Save and return DTO
@@ -93,8 +93,8 @@ public class UserProfileService {
         if (request.getPosition() != null) {
             existing.setPosition(request.getPosition());
         }
-        if (request.getAvatarUrl() != null) {
-            existing.setAvatarUrl(request.getAvatarUrl());
+        if (request.getAvatarPath() != null) {
+            existing.setAvatarPath(request.getAvatarPath());
         }
         if (request.getBio() != null) {
             existing.setBio(request.getBio());
@@ -113,4 +113,15 @@ public class UserProfileService {
         }
         userProfileRepository.deleteById(userId);
     }
+
+    public String getAvatarPath(String userId) {
+    return userProfileRepository.findById(userId).map(UserProfile::getAvatarPath).orElse(null);
+  }
+
+  public UserProfile updateAvatarPath(String userId, String path) {
+    UserProfile p = userProfileRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("Profile not found for user: " + userId));
+    p.setAvatarPath(path);
+    return userProfileRepository.save(p);
+  }
 }

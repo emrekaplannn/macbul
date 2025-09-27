@@ -18,6 +18,9 @@ public class Otp {
     @Column(name = "user_id", length = 40, nullable = false)
     private String userId;
 
+    @Column(name = "destination", length = 255, nullable = false)
+    private String destination;
+
     @Column(name = "code", length = 64, nullable = false)
     private String code;
 

@@ -8,6 +8,6 @@ public record RegisterRequest(
         String fullName,
         String phone,
         String position,
-        String avatarUrl,
+        String avatarPath,
         String referralCode
 ) {}

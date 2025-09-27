@@ -31,8 +31,8 @@ public class UserProfile {
     @Column(length = 50)
     private String position;
 
-    @Column(name = "avatar_url", length = 255)
-    private String avatarUrl;
+    @Column(name = "avatar_path", length = 255)
+    private String avatarPath;
 
     @Column(columnDefinition = "TEXT")
     private String bio;
