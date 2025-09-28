@@ -2,6 +2,7 @@
 package com.macbul.platform.controller;
 
 import com.macbul.platform.dto.*;
+import com.macbul.platform.service.MatchParticipantService;
 import com.macbul.platform.service.MatchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,6 +18,9 @@ import java.util.List;
 public class MatchController {
 
     @Autowired private MatchService matchService;
+
+    @Autowired
+    private MatchParticipantService matchParticipantService;
 
     @Operation(summary = "Create a new match")
     @PostMapping
@@ -56,5 +60,11 @@ public class MatchController {
     public ResponseEntity<Void> delete(@PathVariable String id) {
         matchService.deleteMatch(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Get slots status (paid participants) for a match")
+    @GetMapping("/{matchId}/slots")
+    public ResponseEntity<MatchSlotsDto> getSlots(@PathVariable String matchId) {
+        return ResponseEntity.ok(matchParticipantService.getSlotsStatus(matchId));
     }
 }

@@ -16,4 +16,7 @@ public interface MatchParticipantRepository
     List<MatchParticipant> findByUserId(String userId);
 
     boolean existsByMatchIdAndUserId(String matchId, String userId);
+
+    long countByMatchIdAndHasPaidTrue(String matchId);
+
 }
