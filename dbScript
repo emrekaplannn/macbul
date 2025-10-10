@@ -89,6 +89,7 @@ CREATE TABLE `user_profiles` (
   `full_name`  VARCHAR(100)  DEFAULT NULL,
   `position`   VARCHAR(50)   DEFAULT NULL,
   `avatar_path` VARCHAR(255)  DEFAULT NULL,
+  `location`   VARCHAR(64)   DEFAULT NULL,
   `bio`        TEXT          DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   CONSTRAINT `fk_user_profiles_users`

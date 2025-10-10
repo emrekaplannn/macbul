@@ -34,6 +34,9 @@ public class UserProfile {
     @Column(name = "avatar_path", length = 255)
     private String avatarPath;
 
+    @Column(name = "location", length = 64)
+    private String location;
+
     @Column(columnDefinition = "TEXT")
     private String bio;
 }

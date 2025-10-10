@@ -9,4 +9,5 @@ public class UserCreateRequest {
     private String password;
     private String phone;
     private String referredByCode;
+    private Integer overallScore;
 }

@@ -65,7 +65,7 @@ public class UserService implements UserDetailsService {
         newUser.setPhone(phone);
         newUser.setPasswordHash(passwordEncoder.encode(request.getPassword())); // BCrypt
         newUser.setRegisteredAt(System.currentTimeMillis());
-        newUser.setOverallScore(null);
+        newUser.setOverallScore(request.getOverallScore());
         newUser.setIsBanned(false);
         newUser.setReferredByCode(request.getReferredByCode());
         // doğrulama bayrakları

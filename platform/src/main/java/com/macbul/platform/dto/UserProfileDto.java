@@ -13,4 +13,5 @@ public class UserProfileDto {
     private String position;
     private String avatarPath;
     private String bio;
+    private String location;
 }

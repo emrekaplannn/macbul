@@ -54,6 +54,7 @@ public class UserProfileService {
         profile.setPosition(request.getPosition());
         profile.setAvatarPath(request.getAvatarPath());
         profile.setBio(request.getBio());
+        profile.setLocation(request.getLocation());
 
         // Save and return DTO
         UserProfile saved = userProfileRepository.save(profile);
@@ -98,6 +99,9 @@ public class UserProfileService {
         }
         if (request.getBio() != null) {
             existing.setBio(request.getBio());
+        }
+        if (request.getLocation() != null) {
+            existing.setLocation(request.getLocation());
         }
 
         UserProfile updated = userProfileRepository.save(existing);

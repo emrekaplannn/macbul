@@ -9,5 +9,7 @@ public record RegisterRequest(
         String phone,
         String position,
         String avatarPath,
-        String referralCode
+        String referralCode,
+        Integer overallScore,
+        String location
 ) {}

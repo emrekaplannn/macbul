@@ -17,4 +17,5 @@ public class UserProfileCreateRequest {
     private String position;
     private String avatarPath;
     private String bio;
+    private String location;
 }

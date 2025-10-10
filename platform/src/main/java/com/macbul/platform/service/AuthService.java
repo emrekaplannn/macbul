@@ -64,6 +64,7 @@ public class AuthService {
         u.setPasswordHash(encoder.encode(req.password()));
         u.setRegisteredAt(System.currentTimeMillis());
         u.setIsBanned(false);
+        u.setOverallScore(req.overallScore());
 
         try {
             userRepository.save(u);
@@ -94,6 +95,7 @@ public class AuthService {
             profileReq.setPosition(req.position());
             profileReq.setAvatarPath(req.avatarPath());
             profileReq.setBio(null);
+            profileReq.setLocation(req.location());
             userProfileService.createProfile(profileReq, u.getId());
         }
 
