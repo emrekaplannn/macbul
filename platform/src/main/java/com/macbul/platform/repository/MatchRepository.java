@@ -15,4 +15,6 @@ public interface MatchRepository extends JpaRepository<Match, String> {
      * List all matches organized by a given user.
      */
     List<Match> findByOrganizerId(String organizerId);
+
+    List<Match> findByMatchTimestampGreaterThanEqual(Long fromTimestamp); // ✅
 }

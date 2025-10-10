@@ -34,21 +34,39 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     /**
      * Bu uçlara (ve OPTIONS preflight’a) filtre uygulanmaz.
-     * SecurityConfig’te permitAll verdiğin yollarla uyumlu tut.
+     * SecurityConfig ile birebir uyumlu olmalı.
      */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         final String uri = request.getRequestURI();
         final String method = request.getMethod();
 
-        if (HttpMethod.OPTIONS.matches(method)) return true; // CORS preflight
+        // CORS preflight
+        if (HttpMethod.OPTIONS.matches(method)) return true;
 
-        return uri.startsWith("/v1/auth/")
+        // Public auth & docs
+        if (uri.startsWith("/v1/auth/")
                 || uri.startsWith("/v3/api-docs")
                 || uri.equals("/swagger-ui.html")
                 || uri.startsWith("/swagger-ui")
-                || uri.equals("/actuator/health")
-                || uri.startsWith("/v1/matches/"); // public ise
+                || uri.equals("/actuator/health")) {
+            return true;
+        }
+
+        // Matches: sadece GET olan public uçlar filtre dışı
+        if (HttpMethod.GET.matches(method)) {
+            // /v1/matches
+            if ("/v1/matches".equals(uri)) return true;
+
+            // /v1/matches/{id}
+            if (uri.matches("^/v1/matches/[^/]+$")) return true;
+
+            // /v1/matches/{id}/slots
+            if (uri.matches("^/v1/matches/[^/]+/slots$")) return true;
+        }
+
+        // Diğerleri (POST /v1/matches/list-filtered dahil) filtrelensin
+        return false;
     }
 
     @Override
@@ -62,29 +80,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 ? header.substring(7)
                 : null;
 
-        // Context boşsa ve geçerli bir bearer header'ı varsa doğrula
         if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 String username = jwtService.extractUsername(token);
                 if (StringUtils.hasText(username) && jwtService.isAccessToken(token)) {
                     UserDetails user = userDetailsService.loadUserByUsername(username);
-
                     if (jwtService.isTokenValid(token, user)) {
                         UsernamePasswordAuthenticationToken auth =
-                                new UsernamePasswordAuthenticationToken(
-                                        user, null, user.getAuthorities());
+                                new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                         auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(auth);
                     }
                 }
             } catch (JwtException | IllegalArgumentException ex) {
-                // Geçersiz/bozuk token: context’e dokunma; exceptionHandling 401 üretecek
                 log.debug("Invalid JWT: {}", ex.getMessage());
             } catch (UsernameNotFoundException ex) {
-                // Token geçerli göründü ama kullanıcı bulunamadı
                 log.debug("User not found for JWT subject: {}", ex.getMessage());
             } catch (Exception ex) {
-                // Beklenmeyen durum – zinciri bozmadan logla
                 log.error("Unexpected error in JwtAuthFilter", ex);
             }
         }

@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableMethodSecurity
@@ -33,8 +34,7 @@ public class SecurityConfig {
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
                 .requestMatchers("/v1/auth/**", "/actuator/health").permitAll()
                 // Matches public ise (öyle yapmışsın):
-                .requestMatchers("/v1/matches/**").permitAll()
-                // diğer her şey korumalı
+                .requestMatchers(HttpMethod.GET, "/v1/matches", "/v1/matches/*", "/v1/matches/*/slots").permitAll()
                 .anyRequest().authenticated()
             )
 

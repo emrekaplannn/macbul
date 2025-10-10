@@ -2,9 +2,9 @@
 CREATE TABLE `users` (
   `id`               VARCHAR(36)   NOT NULL,
   `email`            VARCHAR(255)  NOT NULL,
-  'email_verified' BOOLEAN       NOT NULL DEFAULT FALSE,
+  `email_verified` BOOLEAN       NOT NULL DEFAULT FALSE,
   `phone`            VARCHAR(20)   DEFAULT NULL,
-  'phone_verified' BOOLEAN       NOT NULL DEFAULT FALSE,
+  `phone_verified` BOOLEAN       NOT NULL DEFAULT FALSE,
   `password_hash`    VARCHAR(255)  NOT NULL,
   `registered_at`    BIGINT        NOT NULL,               -- epoch millis
   `overall_score`    INT           DEFAULT NULL,            -- 0–100 arası puan, NULL olabilir
@@ -81,6 +81,7 @@ CREATE TABLE `match_participants` (
     ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE INDEX idx_mp_match_paid ON match_participants (match_id, has_paid);
 
 -- 5. user_profiles Tablosu
 CREATE TABLE `user_profiles` (
@@ -295,16 +296,19 @@ CREATE TABLE `notifications` (
 
 -- 15. otp Tablosu
 CREATE TABLE otp (
-  id          VARCHAR(36)  PRIMARY KEY,
-  user_id     VARCHAR(36)  NOT NULL,
-  destination VARCHAR(255) NOT NULL,
-  code        VARCHAR(15)  NOT NULL,
-  type        ENUM('EMAIL_VERIFY') NOT NULL,
-  expires_at  BIGINT       NOT NULL,
-  created_at  BIGINT       NOT NULL,
-  used_at     BIGINT       NULL,
+  id            VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci PRIMARY KEY,
+  user_id       VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  destination   VARCHAR(255) NOT NULL,
+  code          VARCHAR(15)  NOT NULL,
+  type          ENUM('EMAIL_VERIFY') NOT NULL,
+  expires_at    BIGINT       NOT NULL,
+  created_at    BIGINT       NOT NULL,
+  used_at       BIGINT       NULL,
   CONSTRAINT fk_otp_user FOREIGN KEY (user_id) REFERENCES users(id)
-);
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 
 CREATE INDEX idx_otp_user_code ON otp(user_id, code, type);
 
