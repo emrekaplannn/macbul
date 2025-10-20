@@ -3,6 +3,8 @@ package com.macbul.platform.controller;
 
 import com.macbul.platform.dto.*;
 import com.macbul.platform.service.MatchParticipantService;
+import com.macbul.platform.util.SecurityUtils;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,12 +19,18 @@ import java.util.List;
 public class MatchParticipantController {
 
     @Autowired private MatchParticipantService service;
+    @Autowired private SecurityUtils securityUtils;
 
     @Operation(summary = "Add participant to match")
     @PostMapping
     public ResponseEntity<MatchParticipantDto> create(
             @RequestBody MatchParticipantCreateRequest req
     ) {
+        if(req.getUserId() == null){
+            String userId = securityUtils.getCurrentUserId();
+            req.setUserId(userId);
+
+        }
         return ResponseEntity.ok(service.create(req));
     }
 

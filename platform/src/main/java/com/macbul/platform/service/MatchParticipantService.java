@@ -101,7 +101,7 @@ public class MatchParticipantService {
         mp.setHasPaid(
             req.getHasPaid() != null 
                 ? req.getHasPaid() 
-                : Boolean.FALSE
+                : Boolean.TRUE
         );
 
         return mapper.toMatchParticipantDto(mpRepo.save(mp));
