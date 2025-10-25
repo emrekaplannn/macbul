@@ -313,3 +313,66 @@ CREATE TABLE otp (
 
 CREATE INDEX idx_otp_user_code ON otp(user_id, code, type);
 
+
+-- 16. match_result Tablosu
+CREATE TABLE IF NOT EXISTS match_result (
+    match_result_id   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    match_id          VARCHAR(36) NOT NULL,  -- FK: matches.id
+    status            ENUM('SCHEDULED', 'ONGOING', 'COMPLETED', 'CANCELED', 'ABANDONED') 
+                     NOT NULL DEFAULT 'SCHEDULED',
+    started_at        BIGINT NULL,
+    ended_at          BIGINT NULL,
+    winning_team      ENUM('A', 'B', 'DRAW') NULL DEFAULT 'DRAW',
+    notes             TEXT NULL,
+    created_at        BIGINT NOT NULL,
+    updated_at        BIGINT NOT NULL,
+    CONSTRAINT uq_match_result__match UNIQUE (match_id),
+    CONSTRAINT fk_match_result__match
+        FOREIGN KEY (match_id) REFERENCES matches(id)
+        ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- 17. match_team_result Tablosu
+
+CREATE TABLE IF NOT EXISTS match_team_result (
+    match_team_result_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    match_id             VARCHAR(36) NOT NULL,
+    team_label           ENUM('A', 'B') NOT NULL,
+    score                INT NOT NULL DEFAULT 0,
+    is_winner            TINYINT(1) NOT NULL DEFAULT 0,
+    created_at           BIGINT NOT NULL,
+    updated_at           BIGINT NOT NULL,
+    CONSTRAINT uq_match_team_result__match_team UNIQUE (match_id, team_label),
+    CONSTRAINT fk_match_team_result__match
+        FOREIGN KEY (match_id) REFERENCES matches(id)
+        ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- 18. match_player_result Tablosu
+
+CREATE TABLE IF NOT EXISTS match_player_result (
+    match_player_result_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    match_id               VARCHAR(36) NOT NULL,
+    user_id                VARCHAR(36) NOT NULL,
+    team_label             ENUM('A', 'B') NOT NULL,
+    attendance_status      ENUM('PLAYED', 'NO_SHOW', 'INJURED') 
+                           NOT NULL DEFAULT 'PLAYED',
+    position               VARCHAR(16) NULL,  -- GK, DEF, MID, FWD vb.
+    goals                  INT NOT NULL DEFAULT 0,
+    assists                INT NOT NULL DEFAULT 0,
+    own_goals              INT NOT NULL DEFAULT 0,
+    saves              	   INT NOT NULL DEFAULT 0,
+    rating                 INT(11) NULL CHECK (rating BETWEEN 0 AND 100),
+    mvp                    TINYINT(1) NOT NULL DEFAULT 0,
+    notes                VARCHAR(512) NULL,
+    created_at             BIGINT NOT NULL,
+    updated_at             BIGINT NOT NULL,
+    CONSTRAINT uq_match_player_result__match_user UNIQUE (match_id, user_id),
+    CONSTRAINT fk_match_player_result__match
+        FOREIGN KEY (match_id) REFERENCES matches(id)
+        ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_match_player_result__user
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
