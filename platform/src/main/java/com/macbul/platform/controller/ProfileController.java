@@ -2,6 +2,8 @@ package com.macbul.platform.controller;
 
 import com.macbul.platform.dto.ProfileMeResponse;
 import com.macbul.platform.model.User;
+import com.macbul.platform.model.UserProfile;
+import com.macbul.platform.repository.UserProfileRepository;
 import com.macbul.platform.repository.UserRepository;
 import com.macbul.platform.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,10 +18,12 @@ public class ProfileController {
 
     private final SecurityUtils securityUtils;
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
 
-    public ProfileController(SecurityUtils securityUtils, UserRepository userRepository) {
+    public ProfileController(SecurityUtils securityUtils, UserRepository userRepository, UserProfileRepository userProfileRepository) {
         this.securityUtils = securityUtils;
         this.userRepository = userRepository;
+        this.userProfileRepository = userProfileRepository;
     }
 
     @Operation(summary = "Get current user's profile (by auth token)")
@@ -35,6 +39,9 @@ public class ProfileController {
         User u = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        UserProfile up = userProfileRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("UserProfile not found"));
+
         // DTO dön
         return ResponseEntity.ok(
                 ProfileMeResponse.builder()
@@ -42,6 +49,11 @@ public class ProfileController {
                         .email(u.getEmail())
                         .emailVerified(Boolean.TRUE.equals(u.getEmailVerified()))
                         .isBanned(Boolean.TRUE.equals(u.getIsBanned()))
+                        .overall(u.getOverallScore())
+                        .fullName(up.getFullName())
+                        .position(up.getPosition())
+                        .location(up.getLocation())
+                        .bio(up.getBio())
                         .build()
         );
     }

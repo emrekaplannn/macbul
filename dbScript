@@ -376,3 +376,71 @@ CREATE TABLE IF NOT EXISTS match_player_result (
         ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+
+CREATE TABLE match_player_feedback (
+  id              BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  match_id        VARCHAR(36)  NOT NULL,   -- FK: matches.id
+  reviewer_id     VARCHAR(36)  NOT NULL,   -- FK: accounts.id (geri bildirimi veren)
+  target_id       VARCHAR(36)  NOT NULL,   -- FK: accounts.id (geri bildirimi alan)
+  overall_rating  TINYINT      NOT NULL DEFAULT 0,   -- 0–5 arası yıldız
+  comment         VARCHAR(255) NULL,                 -- kısa yorum (opsiyonel)
+  created_at      BIGINT       NOT NULL,  -- epoch millis olarak tutulabilir
+  updated_at      BIGINT       NULL,
+
+  UNIQUE KEY ux_match_reviewer_target (match_id, reviewer_id, target_id),
+
+  KEY idx_match (match_id),
+  KEY idx_reviewer (reviewer_id),
+  KEY idx_target (target_id),
+
+  CONSTRAINT fk_feedback_match
+    FOREIGN KEY (match_id)
+    REFERENCES matches(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_feedback_reviewer
+    FOREIGN KEY (reviewer_id)
+    REFERENCES users(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_feedback_target
+    FOREIGN KEY (target_id)
+    REFERENCES users(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+CREATE TABLE match_feedback (
+  id                       BIGINT        NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  match_id                 VARCHAR(36)   NOT NULL,   -- FK: matches.id
+  user_id                  VARCHAR(36)   NOT NULL,   -- FK: users.id (geri bildirimi veren)
+  organization_quality     TINYINT       NOT NULL,   -- Organizasyon Kalitesi (0–5)
+  facility_quality         TINYINT       NOT NULL,   -- Saha/Fasilite (0–5)
+  fair_play                ENUM('GOOD','AVERAGE','BAD')   NOT NULL,  -- İyi / Orta / Kötü
+  payment_app_experience   ENUM('OK','SLOW','ERROR')      NOT NULL,  -- Sorunsuz / Yavaş / Hata Var
+  comment                  VARCHAR(255)  NULL,        -- Genel yorum (opsiyonel)
+  created_at               BIGINT        NOT NULL,    -- epoch millis
+  updated_at               BIGINT        NULL,
+
+  -- Aynı kullanıcı aynı maç için yalnızca bir kez geri bildirim verebilir
+  UNIQUE KEY ux_match_user (match_id, user_id),
+
+  KEY idx_match (match_id),
+  KEY idx_user  (user_id),
+
+  CONSTRAINT fk_mf_match
+    FOREIGN KEY (match_id)
+    REFERENCES matches(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_mf_user
+    FOREIGN KEY (user_id)
+    REFERENCES users(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
