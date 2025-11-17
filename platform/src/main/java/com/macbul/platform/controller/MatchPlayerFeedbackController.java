@@ -3,12 +3,16 @@ package com.macbul.platform.controller;
 
 import com.macbul.platform.dto.*;
 import com.macbul.platform.service.MatchPlayerFeedbackService;
+import com.macbul.platform.util.SecurityUtils;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +26,9 @@ public class MatchPlayerFeedbackController {
 
     private final MatchPlayerFeedbackService service;
 
+    @Autowired
+    private SecurityUtils securityUtils;
+
     @Operation(summary = "Geri bildirim oluştur/güncelle (UPSERT)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Başarılı"),
@@ -29,6 +36,18 @@ public class MatchPlayerFeedbackController {
     })
     @PostMapping
     public ResponseEntity<FeedbackResponse> upsert(@Valid @RequestBody FeedbackUpsertRequest req) {
+        if(req.reviewerId() == null || req.reviewerId().isBlank()) {
+            FeedbackUpsertRequest newReq = new FeedbackUpsertRequest(
+                    req.matchId(),
+                    securityUtils.getCurrentUserId(),
+                    req.targetId(),
+                    req.overallRating(),
+                    req.comment()
+            );
+            return ResponseEntity.ok(service.upsert(newReq));
+
+        }
+
         return ResponseEntity.ok(service.upsert(req));
     }
 
