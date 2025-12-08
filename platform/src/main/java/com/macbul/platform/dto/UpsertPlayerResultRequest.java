@@ -1,6 +1,7 @@
 // src/main/java/com/macbul/platform/dto/result/UpsertPlayerResultRequest.java
 package com.macbul.platform.dto;
 import com.macbul.platform.util.*;
+
 import lombok.*;
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class UpsertPlayerResultRequest {
@@ -8,7 +9,7 @@ public class UpsertPlayerResultRequest {
     private String userId;
     private TeamLabel teamLabel;
     private AttendanceStatus attendanceStatus; // default PLAYED
-    private String position;
+    private PlayerPosition position;
     private Integer goals;
     private Integer assists;
     private Integer ownGoals;

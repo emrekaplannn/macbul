@@ -1,6 +1,7 @@
 // src/main/java/com/macbul/platform/dto/result/MatchPlayerResultDto.java
 package com.macbul.platform.dto;
 import com.macbul.platform.util.*;
+
 import lombok.*;
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class MatchPlayerResultDto {
@@ -9,7 +10,7 @@ public class MatchPlayerResultDto {
     private String userId;
     private TeamLabel teamLabel;
     private AttendanceStatus attendanceStatus;
-    private String position;
+    private PlayerPosition position;
     private Integer goals;
     private Integer assists;
     private Integer ownGoals;

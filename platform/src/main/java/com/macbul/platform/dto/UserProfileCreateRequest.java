@@ -1,21 +1,24 @@
 package com.macbul.platform.dto;
 
+import com.macbul.platform.util.PlayerPosition;
 import lombok.Data;
 
 /**
  * Fields required to create a new UserProfile. 
- * The userId must reference an existing User.
+ * The userId is taken from the authenticated user or route.
  */
 @Data
 public class UserProfileCreateRequest {
 
-    /**
-     * UUID of an existing User. 
-     * This will become the primary key of the new profile.
-     */
     private String fullName;
-    private String position;
+    private PlayerPosition position;
     private String avatarPath;
     private String bio;
-    private String location;
+
+    /**
+     * districtId → districts.id (FK)
+     * Eğer kullanıcı sadece şehir seçmişse district_name = NULL olan city-only kaydı gönderilir.
+     * Eğer hiçbir konum seçmemişse null gönderilir.
+     */
+    private Integer districtId;
 }

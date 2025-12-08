@@ -1,0 +1,19 @@
+{
+  "GK": "Kaleci",
+  "DF": "Defans",
+  "MF": "Orta Saha",
+  "FW": "Forvet",
+
+  "RB": "Sağ Bek",
+  "LB": "Sol Bek",
+  "CB": "Stoper",
+
+  "DM": "Defansif Orta Saha",
+  "CM": "Merkez Orta Saha",
+  "AM": "Ofansif Orta Saha",
+
+  "RW": "Sağ Kanat",
+  "LW": "Sol Kanat",
+
+  "ST": "Santrafor"
+}

@@ -29,8 +29,8 @@ public class MatchPlayerResult {
     @Builder.Default
     private AttendanceStatus attendanceStatus = AttendanceStatus.PLAYED;
 
-    @Column(name = "position", length = 16)
-    private String position; // GK/DEF/MID/FWD (serbest)
+    @Enumerated(EnumType.STRING)
+    private PlayerPosition position;
 
     @Column(name = "goals", nullable = false)
     private Integer goals;

@@ -1,5 +1,8 @@
 // RegisterRequest.java
 package com.macbul.platform.dto.auth;
+import com.macbul.platform.util.City;
+import com.macbul.platform.util.PlayerPosition;
+
 import jakarta.validation.constraints.*;
 
 public record RegisterRequest(
@@ -7,9 +10,10 @@ public record RegisterRequest(
         @NotBlank @Size(min=6) String password,
         String fullName,
         String phone,
-        String position,
+        PlayerPosition position,
         String avatarPath,
         String referralCode,
         Integer overallScore,
-        String location
-) {}
+        City city,        // örn: "İstanbul"
+        String district    // örn: "Kadıköy" — ya da null
+        ) {}

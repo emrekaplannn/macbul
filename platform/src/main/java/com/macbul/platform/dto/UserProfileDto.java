@@ -1,5 +1,7 @@
 package com.macbul.platform.dto;
 
+import com.macbul.platform.util.PlayerPosition;
+
 import lombok.Data;
 
 /**
@@ -10,8 +12,8 @@ public class UserProfileDto {
 
     private String userId;
     private String fullName;
-    private String position;
+    private PlayerPosition position;
     private String avatarPath;
     private String bio;
-    private String location;
+    private Integer districtId;
 }

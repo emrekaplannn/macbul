@@ -5,6 +5,7 @@ import com.macbul.platform.model.User;
 import com.macbul.platform.model.UserProfile;
 import com.macbul.platform.repository.UserProfileRepository;
 import com.macbul.platform.repository.UserRepository;
+import com.macbul.platform.util.City;
 import com.macbul.platform.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,6 +43,21 @@ public class ProfileController {
         UserProfile up = userProfileRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("UserProfile not found"));
 
+
+         // District bilgisi
+        String locationString = null;
+
+        if (up.getDistrict() != null) {
+            City city = up.getDistrict().getCity();           // İstanbul
+            String districtName = up.getDistrict().getDistrictName();   // Kadıköy
+
+            if (districtName != null && !districtName.isBlank()) {
+                locationString = districtName + ", " + city;    // Kadıköy, İstanbul
+            } else {
+                locationString = city.name();                          // İstanbul
+            }
+        }
+
         // DTO dön
         return ResponseEntity.ok(
                 ProfileMeResponse.builder()
@@ -51,8 +67,8 @@ public class ProfileController {
                         .isBanned(Boolean.TRUE.equals(u.getIsBanned()))
                         .overall(u.getOverallScore())
                         .fullName(up.getFullName())
-                        .position(up.getPosition())
-                        .location(up.getLocation())
+                        .position(up.getPosition() != null ? up.getPosition().getLabel() : null)
+                        .location(locationString)
                         .bio(up.getBio())
                         .build()
         );

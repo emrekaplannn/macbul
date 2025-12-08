@@ -1,3 +1,119 @@
+CREATE TABLE districts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  city ENUM('İstanbul', 'Ankara', 'İzmir') NOT NULL,
+  district_name VARCHAR(100) DEFAULT NULL,
+  active TINYINT(1) DEFAULT 1
+);
+
+-- İstanbul
+INSERT INTO districts (city, district_name) VALUES
+('İstanbul', NULL),
+('İstanbul', 'Adalar'),
+('İstanbul', 'Arnavutköy'),
+('İstanbul', 'Ataşehir'),
+('İstanbul', 'Avcılar'),
+('İstanbul', 'Bağcılar'),
+('İstanbul', 'Bahçelievler'),
+('İstanbul', 'Bakırköy'),
+('İstanbul', 'Başakşehir'),
+('İstanbul', 'Bayrampaşa'),
+('İstanbul', 'Beşiktaş'),
+('İstanbul', 'Beykoz'),
+('İstanbul', 'Beylikdüzü'),
+('İstanbul', 'Beyoğlu'),
+('İstanbul', 'Büyükçekmece'),
+('İstanbul', 'Çatalca'),
+('İstanbul', 'Çekmeköy'),
+('İstanbul', 'Esenler'),
+('İstanbul', 'Esenyurt'),
+('İstanbul', 'Eyüpsultan'),
+('İstanbul', 'Fatih'),
+('İstanbul', 'Gaziosmanpaşa'),
+('İstanbul', 'Güngören'),
+('İstanbul', 'Kadıköy'),
+('İstanbul', 'Kağıthane'),
+('İstanbul', 'Kartal'),
+('İstanbul', 'Küçükçekmece'),
+('İstanbul', 'Maltepe'),
+('İstanbul', 'Pendik'),
+('İstanbul', 'Sancaktepe'),
+('İstanbul', 'Sarıyer'),
+('İstanbul', 'Şile'),
+('İstanbul', 'Silivri'),
+('İstanbul', 'Şişli'),
+('İstanbul', 'Sultanbeyli'),
+('İstanbul', 'Sultangazi'),
+('İstanbul', 'Tuzla'),
+('İstanbul', 'Ümraniye'),
+('İstanbul', 'Üsküdar'),
+('İstanbul', 'Zeytinburnu');
+
+-- Ankara
+INSERT INTO districts (city, district_name) VALUES
+('Ankara', NULL),
+('Ankara', 'Akyurt'),
+('Ankara', 'Altındağ'),
+('Ankara', 'Ayaş'),
+('Ankara', 'Bala'),
+('Ankara', 'Beypazarı'),
+('Ankara', 'Çamlıdere'),
+('Ankara', 'Çankaya'),
+('Ankara', 'Çubuk'),
+('Ankara', 'Elmadağ'),
+('Ankara', 'Etimesgut'),
+('Ankara', 'Evren'),
+('Ankara', 'Gölbaşı'),
+('Ankara', 'Güdül'),
+('Ankara', 'Haymana'),
+('Ankara', 'Kahramankazan'),
+('Ankara', 'Kalecik'),
+('Ankara', 'Keçiören'),
+('Ankara', 'Kızılcahamam'),
+('Ankara', 'Mamak'),
+('Ankara', 'Nallıhan'),
+('Ankara', 'Polatlı'),
+('Ankara', 'Pursaklar'),
+('Ankara', 'Sincan'),
+('Ankara', 'Şereflikoçhisar'),
+('Ankara', 'Yenimahalle');
+
+-- İzmir
+INSERT INTO districts (city, district_name) VALUES
+('İzmir', NULL),
+('İzmir', 'Aliağa'),
+('İzmir', 'Balçova'),
+('İzmir', 'Bayındır'),
+('İzmir', 'Bayraklı'),
+('İzmir', 'Bergama'),
+('İzmir', 'Beydağ'),
+('İzmir', 'Bornova'),
+('İzmir', 'Buca'),
+('İzmir', 'Çeşme'),
+('İzmir', 'Çiğli'),
+('İzmir', 'Dikili'),
+('İzmir', 'Foça'),
+('İzmir', 'Gaziemir'),
+('İzmir', 'Güzelbahçe'),
+('İzmir', 'Karabağlar'),
+('İzmir', 'Karaburun'),
+('İzmir', 'Karşıyaka'),
+('İzmir', 'Kemalpaşa'),
+('İzmir', 'Kınık'),
+('İzmir', 'Kiraz'),
+('İzmir', 'Konak'),
+('İzmir', 'Menderes'),
+('İzmir', 'Menemen'),
+('İzmir', 'Narlıdere'),
+('İzmir', 'Ödemiş'),
+('İzmir', 'Seferihisar'),
+('İzmir', 'Selçuk'),
+('İzmir', 'Tire'),
+('İzmir', 'Torbalı'),
+('İzmir', 'Urla');
+
+
+
+
 -- 1. users Tablosu
 CREATE TABLE `users` (
   `id`               VARCHAR(36)   NOT NULL,
@@ -87,12 +203,21 @@ CREATE INDEX idx_mp_match_paid ON match_participants (match_id, has_paid);
 CREATE TABLE `user_profiles` (
   `user_id`    VARCHAR(36)   NOT NULL,
   `full_name`  VARCHAR(100)  DEFAULT NULL,
-  `position`   VARCHAR(50)   DEFAULT NULL,
+  `position`   ENUM(
+  'GK',        -- Kaleci
+  'DF', 'MF', 'FW',   -- Genel roller
+  'RB', 'LB',          -- Bekler
+  'CB',                -- Stoper
+  'DM', 'CM', 'AM',    -- Orta saha roller
+  'RW', 'LW',          -- Kanat oyuncuları
+  'ST'                 -- Santrafor
+) DEFAULT NULL,
   `avatar_path` VARCHAR(255)  DEFAULT NULL,
-  `location`   VARCHAR(64)   DEFAULT NULL,
+  `location`   INT   DEFAULT NULL,
   `bio`        TEXT          DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   CONSTRAINT `fk_user_profiles_users`
+    FOREIGN KEY (`location`) REFERENCES `districts` (`id`)
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
@@ -357,7 +482,15 @@ CREATE TABLE IF NOT EXISTS match_player_result (
     team_label             ENUM('A', 'B') NOT NULL,
     attendance_status      ENUM('PLAYED', 'NO_SHOW', 'INJURED') 
                            NOT NULL DEFAULT 'PLAYED',
-    position               VARCHAR(16) NULL,  -- GK, DEF, MID, FWD vb.
+    position               ENUM(
+  'GK',        -- Kaleci
+  'DF', 'MF', 'FW',   -- Genel roller
+  'RB', 'LB',          -- Bekler
+  'CB',                -- Stoper
+  'DM', 'CM', 'AM',    -- Orta saha roller
+  'RW', 'LW',          -- Kanat oyuncuları
+  'ST'                 -- Santrafor
+) DEFAULT NULL,
     goals                  INT NOT NULL DEFAULT 0,
     assists                INT NOT NULL DEFAULT 0,
     own_goals              INT NOT NULL DEFAULT 0,

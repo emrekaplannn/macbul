@@ -1,12 +1,9 @@
 package com.macbul.platform.model;
 
+import com.macbul.platform.util.PlayerPosition;
 import jakarta.persistence.*;
 import lombok.Data;
 
-/**
- * JPA entity representing a user’s profile. 
- * The primary key (userId) is shared with the User entity (one‐to‐one).
- */
 @Entity
 @Table(name = "user_profiles")
 @Data
@@ -16,10 +13,6 @@ public class UserProfile {
     @Column(name = "user_id", length = 36)
     private String userId;
 
-    /**
-     * Link back to the User entity. We map this PK to User.id via @MapsId.
-     * FetchType.LAZY avoids loading the entire User unless specifically accessed.
-     */
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "user_id")
@@ -28,14 +21,21 @@ public class UserProfile {
     @Column(name = "full_name", length = 100)
     private String fullName;
 
-    @Column(length = 50)
-    private String position;
+    @Enumerated(EnumType.STRING)
+    private PlayerPosition position;
 
     @Column(name = "avatar_path", length = 255)
     private String avatarPath;
 
-    @Column(name = "location", length = 64)
-    private String location;
+    /**
+     * Kullanıcının konumu artık districts tablosundaki id'ye bağlıdır.
+     * (location → district_id FK)
+     *
+     * district_name NULL ise kullanıcı yalnızca şehir seçmiş demektir.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location", referencedColumnName = "id")
+    private District district;
 
     @Column(columnDefinition = "TEXT")
     private String bio;

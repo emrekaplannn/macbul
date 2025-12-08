@@ -32,7 +32,7 @@ public class MapperUtil {
         dto.setPosition(profile.getPosition());
         dto.setAvatarPath(profile.getAvatarPath());
         dto.setBio(profile.getBio());
-        dto.setLocation(profile.getLocation());
+        dto.setDistrictId(profile.getDistrict() != null ? profile.getDistrict().getId() : null);
         return dto;
     }
 
