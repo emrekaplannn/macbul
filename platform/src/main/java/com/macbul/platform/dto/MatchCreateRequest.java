@@ -5,17 +5,22 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 
+import com.macbul.platform.util.City;
+
 /**
  * Fields required to create a new Match.
  */
 @Data
 public class MatchCreateRequest {
-
     private String organizerId;
     private String fieldName;
     private String address;
-    private String city;
+
+    private City city;           // "İstanbul", "Ankara", "İzmir"
+    private String districtName;   // "Kadıköy", "Çankaya", "Karşıyaka" ...
+
     private Long matchTimestamp;
     private BigDecimal pricePerUser;
-    private Integer totalSlots;    // Optional: if null, service can default to 14
+    private Integer totalSlots;
 }
+

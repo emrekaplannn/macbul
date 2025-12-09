@@ -5,17 +5,22 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 
+import com.macbul.platform.util.City;
+
 /**
  * Fields that can be updated in an existing Match.
  * Only non-null values will be applied.
  */
 @Data
 public class MatchUpdateRequest {
-
     private String fieldName;
     private String address;
-    private String city;
+
+    private City city;          // nullable
+    private String districtName;
+
     private Long matchTimestamp;
     private BigDecimal pricePerUser;
     private Integer totalSlots;
 }
+

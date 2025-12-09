@@ -2,8 +2,8 @@
 package com.macbul.platform.dto;
 
 import lombok.Data;
-
 import java.math.BigDecimal;
+import com.macbul.platform.util.City;
 
 /**
  * DTO returned to clients for a Match.
@@ -15,7 +15,10 @@ public class MatchDto {
     private String organizerId;
     private String fieldName;
     private String address;
-    private String city;
+
+    private City city;          // İl
+    private String districtName; // İlçe (null olabilir)
+
     private Long matchTimestamp;
     private BigDecimal pricePerUser;
     private Integer totalSlots;

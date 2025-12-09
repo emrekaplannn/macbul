@@ -140,7 +140,7 @@ CREATE TABLE `matches` (
   `organizer_id`     VARCHAR(36)   NOT NULL,
   `field_name`       VARCHAR(100)  NOT NULL,
   `address`          VARCHAR(255)  NOT NULL,
-  `city`             VARCHAR(50)   NOT NULL,
+  `location`          INT   DEFAULT NULL,
   `match_timestamp`  BIGINT        NOT NULL,               -- epoch millis
   `price_per_user`   DECIMAL(8,2)  NOT NULL,
   `total_slots`      INT           NOT NULL DEFAULT 14,
@@ -148,6 +148,7 @@ CREATE TABLE `matches` (
   PRIMARY KEY (`id`),
   KEY `idx_matches_timestamp` (`match_timestamp`),
   CONSTRAINT `fk_matches_users`
+      FOREIGN KEY (`location`) REFERENCES `districts` (`id`)
     FOREIGN KEY (`organizer_id`) REFERENCES `users` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION

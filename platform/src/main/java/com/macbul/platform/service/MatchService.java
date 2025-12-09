@@ -5,6 +5,7 @@ import com.macbul.platform.dto.*;
 import com.macbul.platform.exception.ResourceNotFoundException;
 import com.macbul.platform.model.*;
 import com.macbul.platform.repository.*;
+import com.macbul.platform.util.City;
 import com.macbul.platform.util.MapperUtil;
 
 import org.slf4j.Logger;
@@ -26,47 +27,86 @@ public class MatchService {
     @Autowired private UserRepository  userRepo;
     @Autowired private MapperUtil      mapper;
     @Autowired private MatchParticipantRepository mpRepo;
-
+    @Autowired private DistrictRepository districtRepo;
 
     /** Create */
     public MatchDto createMatch(MatchCreateRequest req) {
         log.debug("[createMatch] called with organizerId={}, fieldName={}, timestamp={}",
                 req.getOrganizerId(), req.getFieldName(), req.getMatchTimestamp());
 
+        // -----------------------------
+        // 1) Organizer kontrolü
+        // -----------------------------
         User organizer = userRepo.findById(req.getOrganizerId())
-            .orElseThrow(() -> {
-                log.warn("[createMatch] Organizer NOT FOUND: {}", req.getOrganizerId());
-                return new ResourceNotFoundException("User not found: " + req.getOrganizerId());
-            });
+            .orElseThrow(() -> new ResourceNotFoundException("User not found: " + req.getOrganizerId()));
 
+        // -----------------------------
+        // 2) District resolve (nullable)
+        // -----------------------------
+        District district = null;
+
+        // --- District ID bul ---
+        // Kullanıcının şehir seçmesi ZORUNLU
+        if (req.getCity() == null) {
+            throw new IllegalArgumentException("Şehir seçilmelidir.");
+        }
+
+        // District varsa
+        Integer districtId;
+        if (req.getDistrictName() != null && !req.getDistrictName().isBlank()) {
+
+            districtId = districtRepo
+                    .findIdByCityAndDistrictName(req.getCity(), req.getDistrictName())
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("Geçersiz ilçe: " + req.getCity() + " / " + req.getDistrictName()));
+
+        } else {
+            // Sadece şehir (city-only district) için kayıt bul
+            districtId = districtRepo
+                    .findIdByCityAndDistrictNameIsNull(req.getCity())
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("Seçilen şehir için kayıt bulunamadı: " + req.getCity()));
+        }
+        if (districtId != null) {
+            district = districtRepo.findById(districtId)
+                    .orElseThrow(() -> new ResourceNotFoundException("District not found: " + districtId));
+        }
+
+        // -----------------------------
+        // 3) Match oluştur
+        // -----------------------------
         Match match = new Match();
         match.setId(UUID.randomUUID().toString());
         match.setOrganizer(organizer);
         match.setFieldName(req.getFieldName());
         match.setAddress(req.getAddress());
-        match.setCity(req.getCity());
+
+        match.setDistrict(district); // ← FK (nullable allowed)
+
         match.setMatchTimestamp(req.getMatchTimestamp());
         match.setPricePerUser(req.getPricePerUser());
         match.setTotalSlots(req.getTotalSlots() != null ? req.getTotalSlots() : 14);
         match.setCreatedAt(System.currentTimeMillis());
 
         Match saved = matchRepo.save(match);
-        log.debug("[createMatch] match CREATED id={}", saved.getId());
-
         return mapper.toMatchDto(saved);
     }
+
 
 
     /** Read one */
     public MatchDto getMatchById(String id) {
         log.debug("[getMatchById] id={}", id);
+
         Match match = matchRepo.findById(id)
             .orElseThrow(() -> {
                 log.warn("[getMatchById] NOT FOUND: {}", id);
                 return new ResourceNotFoundException("Match not found: " + id);
             });
+
         return mapper.toMatchDto(match);
     }
+
 
 
     /** List all */
@@ -97,12 +137,45 @@ public class MatchService {
                 return new ResourceNotFoundException("Match not found: " + id);
             });
 
+        // ------------------------------------
+        // 1) Basit alanlar
+        // ------------------------------------
         if (req.getFieldName()      != null) match.setFieldName(req.getFieldName());
         if (req.getAddress()        != null) match.setAddress(req.getAddress());
-        if (req.getCity()           != null) match.setCity(req.getCity());
         if (req.getMatchTimestamp() != null) match.setMatchTimestamp(req.getMatchTimestamp());
         if (req.getPricePerUser()   != null) match.setPricePerUser(req.getPricePerUser());
         if (req.getTotalSlots()     != null) match.setTotalSlots(req.getTotalSlots());
+
+        // ------------------------------------
+        // 2) City + District güncelleme
+        //    (city geldiyse lokasyonu güncelle)
+        // ------------------------------------
+        if (req.getCity() != null) {
+            Integer districtId;
+
+            if (req.getDistrictName() != null && !req.getDistrictName().isBlank()) {
+                // Şehir + ilçe birlikte verilmiş
+                districtId = districtRepo
+                    .findIdByCityAndDistrictName(req.getCity(), req.getDistrictName())
+                    .orElseThrow(() ->
+                        new IllegalArgumentException("Geçersiz ilçe: " 
+                            + req.getCity() + " / " + req.getDistrictName()));
+            } else {
+                // Sadece şehir verilmiş (city-only district)
+                districtId = districtRepo
+                    .findIdByCityAndDistrictNameIsNull(req.getCity())
+                    .orElseThrow(() ->
+                        new IllegalArgumentException("Seçilen şehir için kayıt bulunamadı: " 
+                            + req.getCity()));
+            }
+
+            // District entity'yi yükle ve maça set et
+            District district = districtRepo.findById(districtId)
+                .orElseThrow(() ->
+                    new IllegalStateException("District not found for id=" + districtId));
+
+            match.setDistrict(district);   // FK
+        }
 
         Match saved = matchRepo.save(match);
         log.debug("[updateMatch] UPDATED id={}", saved.getId());
@@ -143,13 +216,26 @@ public class MatchService {
             int filled = (int) mpRepo.countByMatchIdAndHasPaidTrue(m.getId());
             boolean joined = mpRepo.existsByMatchIdAndUserId(m.getId(), currentUserId);
 
-            log.trace("[listFiltered] matchId={}, filled={}, joined={}",
-                    m.getId(), filled, joined);
+            // -----------------------------
+            // District -> city + districtName
+            // -----------------------------
+            City city = null;
+            String districtName = null;
+
+            District d = m.getDistrict();
+            if (d != null) {
+                city = d.getCity();              // enum City
+                districtName = d.getDistrictName(); // null olabilir (city-only kayıt)
+            }
+
+            log.trace("[listFiltered] matchId={}, filled={}, joined={}, city={}, district={}",
+                    m.getId(), filled, joined, city, districtName);
 
             return MatchListItemDto.builder()
                     .id(m.getId())
                     .fieldName(m.getFieldName())
-                    .city(m.getCity())
+                    .city(city)
+                    .districtName(districtName)
                     .matchTimestamp(m.getMatchTimestamp())
                     .pricePerUser(m.getPricePerUser())
                     .totalSlots(m.getTotalSlots())
@@ -161,4 +247,5 @@ public class MatchService {
         log.debug("[listFiltered] returning {} matches to client", result.size());
         return result;
     }
+
 }

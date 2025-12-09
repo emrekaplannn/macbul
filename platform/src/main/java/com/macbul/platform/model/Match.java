@@ -14,7 +14,8 @@ import java.math.BigDecimal;
     name = "matches",
     indexes = {
         @Index(name = "idx_matches_timestamp", columnList = "match_timestamp"),
-        @Index(name = "fk_matches_users", columnList = "organizer_id")
+        @Index(name = "fk_matches_users", columnList = "organizer_id"),
+        @Index(name = "fk_matches_district", columnList = "location")
     }
 )
 @Data
@@ -37,8 +38,12 @@ public class Match {
     @Column(name = "address", length = 255, nullable = false)
     private String address;
 
-    @Column(name = "city", length = 50, nullable = false)
-    private String city;
+    /**
+     * Location → FK to district.id
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location") // nullable olabilir, kullanıcı konum seçmeyebilir.
+    private District district;
 
     /**
      * Epoch millis when the match starts.

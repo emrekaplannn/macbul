@@ -95,18 +95,33 @@ public class MapperUtil {
 
     public MatchDto toMatchDto(Match match) {
         if (match == null) return null;
+
         MatchDto dto = new MatchDto();
         dto.setId(match.getId());
-        dto.setOrganizerId(match.getOrganizer() != null ? match.getOrganizer().getId() : null);
+        dto.setOrganizerId(
+            match.getOrganizer() != null ? match.getOrganizer().getId() : null
+        );
         dto.setFieldName(match.getFieldName());
         dto.setAddress(match.getAddress());
-        dto.setCity(match.getCity());
         dto.setMatchTimestamp(match.getMatchTimestamp());
         dto.setPricePerUser(match.getPricePerUser());
         dto.setTotalSlots(match.getTotalSlots());
         dto.setCreatedAt(match.getCreatedAt());
+
+        // -------------------------------
+        // District -> city + districtName
+        // -------------------------------
+        if (match.getDistrict() != null) {
+            dto.setCity(match.getDistrict().getCity());
+            dto.setDistrictName(match.getDistrict().getDistrictName());
+        } else {
+            dto.setCity(null);
+            dto.setDistrictName(null);
+        }
+
         return dto;
     }
+
 
     public MatchParticipantDto toMatchParticipantDto(MatchParticipant mp) {
         if (mp == null) return null;
